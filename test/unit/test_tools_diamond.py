@@ -9,7 +9,7 @@ import tempfile
 import unittest
 import util.file
 import util.misc
-import tools.diamond
+import classify.diamond
 import test
 
 
@@ -36,7 +36,7 @@ class TestToolDiamond(test.TestCaseWithTmp):
         self.mock_conda.return_value.require_executability = False
         self.mock_conda.return_value.executable_path.return_value = "/dev/null"
 
-        self.diamond = tools.diamond.Diamond()
+        self.diamond = classify.diamond.Diamond()
         self.diamond.install()
         self.data_dir = os.path.join(util.file.get_test_input_path(), 'TestMetagenomicsSimple')
         self.db_dir = os.path.join(self.data_dir, 'db')

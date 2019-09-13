@@ -5,13 +5,13 @@ import pytest
 
 import util.file
 import util.misc
-import tools.kraken
+import classify.kraken
 from test import _CPUS
 
 
 @pytest.fixture
 def kraken():
-    return tools.kraken.Kraken()
+    return classify.kraken.Kraken()
 
 
 @pytest.fixture

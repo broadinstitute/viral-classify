@@ -1,64 +1,23 @@
-FROM quay.io/broadinstitute/viral-baseimage:0.1.15
+FROM quay.io/broadinstitute/viral-core:2.0.3
 
 LABEL maintainer "viral-ngs@broadinstitute.org"
 
-# to build:
-#   docker build .
-#
-# to run:
-#   docker run --rm <image_ID> "<command>.py subcommand"
-#
-# to run interactively:
-#   docker run --rm -it <image_ID>
-#
-# to run with GATK and/or Novoalign:
-#   Download licensed copies of GATK and Novoalign to the host machine (for Linux-64)
-#   export GATK_PATH=/path/to/gatk/
-#   export NOVOALIGN_PATH=/path/to/novoalign/
-#   docker run --rm -v $GATK_PATH:/gatk -v $NOVOALIGN_PATH:/novoalign -v /path/to/dir/on/host:/user-data <image_ID> "<command>.py subcommand"
+ENV VIRAL_CLASSIFY_PATH=$INSTALL_PATH/viral-classify
 
-ENV \
-	INSTALL_PATH="/opt/viral-ngs" \
-	VIRAL_NGS_PATH="/opt/viral-ngs/source" \
-	MINICONDA_PATH="/opt/miniconda" \
-	CONDA_DEFAULT_ENV=viral-ngs-env
-ENV \
-	PATH="$VIRAL_NGS_PATH:$MINICONDA_PATH/envs/$CONDA_DEFAULT_ENV/bin:$MINICONDA_PATH/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
-	CONDA_PREFIX=$MINICONDA_PATH/envs/$CONDA_DEFAULT_ENV \
-	JAVA_HOME=$MINICONDA_PATH
+COPY requirements-conda.txt $VIRAL_CLASSIFY_PATH/
+RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda.txt
 
-# Prepare viral-ngs user and installation directory
-# Set it up so that this slow & heavy build layer is cached
-# unless the requirements* files or the install scripts actually change
-WORKDIR $INSTALL_PATH
-RUN conda create -n $CONDA_DEFAULT_ENV python=3.6
-RUN echo "source activate $CONDA_DEFAULT_ENV" > ~/.bashrc
-RUN hash -r
-COPY docker/install-viral-ngs.sh $VIRAL_NGS_PATH/docker/
-COPY requirements-minimal.txt $VIRAL_NGS_PATH/
-RUN $VIRAL_NGS_PATH/docker/install-viral-ngs.sh minimal
-COPY requirements-conda.txt requirements-conda-tests.txt requirements-py3.txt $VIRAL_NGS_PATH/
-RUN $VIRAL_NGS_PATH/docker/install-viral-ngs.sh
-
-# Copy all of the source code into the repo
+# Copy all source code into the base repo
 # (this probably changes all the time, so all downstream build
 # layers will likely need to be rebuilt each time)
-COPY . $VIRAL_NGS_PATH/
+COPY . $VIRAL_CLASSIFY_PATH
 
-# Volume setup: make external tools and data available within the container
-VOLUME ["/gatk", "/novoalign", "/user-data"]
-ENV \
-	VIRAL_NGS_DOCKER_DATA_PATH="/user-data" \
-	NOVOALIGN_PATH="/novoalign" \
-	GATK_PATH="/gatk"
+# Link key bits of python code into the path
+RUN ln -s $VIRAL_CLASSIFY_PATH/metagenomics.py $VIRAL_CLASSIFY_PATH/taxon_filter.py $VIRAL_CLASSIFY_PATH/kmer_utils.py $VIRAL_CLASSIFY_PATH/classify $VIRAL_NGS_PATH
 
 # This not only prints the current version string, but it
 # also saves it to the VERSION file for later use and also
 # verifies that conda-installed python libraries are working.
-RUN /bin/bash -c "set -e; echo -n 'viral-ngs version: '; assembly.py --version"
-
-## A wrapper script to load the viral-ngs environment, switch to
-## a non-root user, and then run any commands desired
-#ENTRYPOINT ["/opt/viral-ngs/source/docker/gosu-entrypoint.sh"]
+RUN /bin/bash -c "set -e; echo -n 'viral-ngs version: '; metagenomics.py --version"
 
 CMD ["/bin/bash"]

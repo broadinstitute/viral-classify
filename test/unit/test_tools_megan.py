@@ -2,7 +2,7 @@
 
 from builtins import super
 import unittest
-import tools.megan
+import classify.megan
 from test import TestCaseWithTmp
 
 
@@ -10,7 +10,7 @@ class TestToolMegan(TestCaseWithTmp):
 
     def setUp(self):
         super().setUp()
-        self.megan = tools.megan.Megan()
+        self.megan = classify.megan.Megan()
         self.megan.install()
 
     # Just a simple test that MEGAN can open/close.

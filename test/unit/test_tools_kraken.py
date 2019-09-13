@@ -5,13 +5,13 @@ import pytest
 
 import util.file
 import util.misc
-import tools.kraken
+import classify.kraken
 from test import _CPUS
 
 
 @pytest.fixture
 def krakenuniq():
-    return tools.kraken.KrakenUniq()
+    return classify.kraken.KrakenUniq()
 
 
 @pytest.fixture
