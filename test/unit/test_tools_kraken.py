@@ -15,7 +15,7 @@ def krakenuniq():
 
 @pytest.fixture
 def kraken():
-    return tools.kraken.Kraken()
+    return classify.kraken.Kraken()
 
 @pytest.fixture
 def in_bam():
@@ -44,7 +44,6 @@ def test_kraken_classify(mocks, kraken, db, in_bam):
     assert util.misc.list_contains(['--db', db], args)
     assert util.misc.list_contains(['--output', out_reads], args)
     assert util.misc.list_contains(['--threads', str(_CPUS)], args)
-
 
 def test_kraken_filter(mocks, kraken, db):
     in_reads = util.file.mkstempfname('.kraken_reads.unfilt.txt')
@@ -75,7 +74,26 @@ def test_krakenuniq_classify(mocks, krakenuniq, db, in_bam):
     assert util.misc.list_contains(['--output', out_reads], args)
     assert util.misc.list_contains(['--threads', str(_CPUS)], args)
 
-def test_classify_num_threads(mocks, krakenuniq, db, in_bam):
+def test_classify_kraken_num_threads(mocks, kraken, db, in_bam):
+    out_reads = util.file.mkstempfname('.reads.txt')
+
+    krakenuniq.classify(in_bam, db, out_reads)
+    args = mocks['check_call'].call_args[0][0]
+    assert 'kraken' == os.path.basename(args[0])
+    assert '--threads' in args
+    actual = args[args.index('--threads')+1]
+    assert actual == str(_CPUS)
+
+    for requested in (1,2,3,8,11,20):
+        expected = min(_CPUS, requested)
+        krakenuniq.classify(in_bam, db, out_reads, num_threads=requested)
+        args = mocks['check_call'].call_args[0][0]
+        assert 'kraken' == os.path.basename(args[0])
+        assert '--threads' in args
+        actual = args[args.index('--threads')+1]
+        assert actual == str(expected), "failure for requested %s, expected %s, actual %s" % (requested, expected, actual)
+
+def test_classify_krakenuniq_ num_threads(mocks, krakenuniq, db, in_bam):
     out_reads = util.file.mkstempfname('.reads.txt')
 
     krakenuniq.classify(in_bam, db, out_reads)
