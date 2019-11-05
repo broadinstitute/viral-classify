@@ -13,6 +13,9 @@ from test import _CPUS
 def krakenuniq():
     return classify.kraken.KrakenUniq()
 
+@pytest.fixture
+def kraken():
+    return tools.kraken.Kraken()
 
 @pytest.fixture
 def in_bam():
@@ -33,6 +36,35 @@ def mocks(mocker):
         'check_call': mock_check_call,
     }
 
+def test_kraken_classify(mocks, kraken, db, in_bam):
+    out_reads = util.file.mkstempfname('.reads.txt')
+    kraken.classify(in_bam, db, out_reads)
+    args = mocks['check_call'].call_args[0][0]
+    assert 'kraken' == os.path.basename(args[0])
+    assert util.misc.list_contains(['--db', db], args)
+    assert util.misc.list_contains(['--output', out_reads], args)
+    assert util.misc.list_contains(['--threads', str(_CPUS)], args)
+
+
+def test_kraken_filter(mocks, kraken, db):
+    in_reads = util.file.mkstempfname('.kraken_reads.unfilt.txt')
+    out_reads = util.file.mkstempfname('.kraken_reads.filt.txt')
+    for thresh in (0.05, 0.3, 0.81):
+        kraken.filter(in_reads, db, out_reads, thresh)
+        args = mocks['run'].call_args[0][0]
+        assert 'kraken-filter' == os.path.basename(args[0])
+        assert in_reads in args
+        assert util.misc.list_contains(['--db', db], args)
+        assert util.misc.list_contains(['--threshold', str(thresh)], args)
+
+def test_kraken_report(mocks, kraken, db):
+    in_reads = util.file.mkstempfname('.kraken_reads.txt')
+    out_report = util.file.mkstempfname('.kraken_report.txt')
+    kraken.report(in_reads, db, out_report)
+    args = mocks['run'].call_args[0][0]
+    assert 'kraken-report' == os.path.basename(args[0])
+    assert in_reads in args
+    assert util.misc.list_contains(['--db', db], args)
 
 def test_krakenuniq_classify(mocks, krakenuniq, db, in_bam):
     out_reads = util.file.mkstempfname('.reads.txt')
