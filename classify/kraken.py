@@ -270,7 +270,7 @@ class Kraken(tools.Tool):
             subprocess.check_call(cmd)
         else:
             with util.file.open_or_gzopen(output, 'w') as of:
-                util.misc.run(cmd, stdout=of, stderr=subprocess.PIPE, check=True)
+                subprocess.run(cmd, stdout=of, stderr=subprocess.PIPE, check=True)
 
 
 @tools.skip_install_test()
