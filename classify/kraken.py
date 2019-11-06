@@ -106,7 +106,7 @@ class Kraken(tools.Tool):
         return db_opts, env, tax_filter_opts, tax_report_opts
 
     def pipeline(self, db, inBams, outReports=None, outReads=None,
-                 lockMemory=None, filterThreshold=None, numThreads=None):
+                 lockMemory=None, filterThreshold=None, num_threads=None):
         assert outReads is not None or outReports is not None
 
         n_bams = len(inBams)
@@ -116,7 +116,7 @@ class Kraken(tools.Tool):
             raise Exception("--outReports specified with {} output files, which does not match the number of input bams ({})".format(len(outReports), n_bams))
         if outReads and len(outReads) != n_bams:
             raise Exception("--outReads specified with {} output files, which does not match the number of input bams ({})".format(len(outReads), n_bams))
-        threads = util.misc.sanitize_thread_count(numThreads)
+        threads = util.misc.sanitize_thread_count(num_threads)
 
         with util.file.fifo(n_pipes) as pipes:
             fastq_pipes = pipes[:n_bams * 2]
@@ -183,7 +183,7 @@ class Kraken(tools.Tool):
                     raise subprocess.CalledProcessError(bam2fq_ps.returncode, "SamToFastqTool().execute({})".format(in_bam))
 
 
-    def classify(self, inBam, db, outReads, numThreads=None):
+    def classify(self, inBam, db, outReads, num_threads=None):
         """Classify input reads (bam)
 
         Args:
@@ -210,7 +210,7 @@ class Kraken(tools.Tool):
                        JVMmemory=picard.jvmMemDefault)
 
         opts = {
-            '--threads': util.misc.sanitize_thread_count(numThreads),
+            '--threads': util.misc.sanitize_thread_count(num_threads),
             '--fastq-input': None,
             '--gzip-compressed': None,
         }
