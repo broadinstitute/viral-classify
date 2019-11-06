@@ -93,7 +93,7 @@ def test_classify_kraken_num_threads(mocks, kraken, db, in_bam):
         actual = args[args.index('--threads')+1]
         assert actual == str(expected), "failure for requested %s, expected %s, actual %s" % (requested, expected, actual)
 
-def test_classify_krakenuniq_ num_threads(mocks, krakenuniq, db, in_bam):
+def test_classify_krakenuniq_num_threads(mocks, krakenuniq, db, in_bam):
     out_reads = util.file.mkstempfname('.reads.txt')
 
     krakenuniq.classify(in_bam, db, out_reads)
