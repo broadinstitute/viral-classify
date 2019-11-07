@@ -6,13 +6,13 @@
 [![Code Health](https://landscape.io/github/broadinstitute/viral-ngs/master/landscape.svg?style=flat)](https://landscape.io/github/broadinstitute/viral-ngs)
 -->
 
-viral-ngs
+viral-classify
 =========
 
-A set of scripts and tools for the analysis of viral NGS data.
+A set of scripts and tools for taxonomic identification, classification, and filtration from NGS data, with a focus on viral applications.
 
+More detailed command line documentation can be found at [readthedocs](http://viral-classify.readthedocs.org/)
 
-More detailed documentation can be found at http://viral-ngs.readthedocs.org/
-This includes installation instructions,
-usage instructions for the command line tools,
-and usage of the pipeline infrastructure.
+Developer documentation can be found at [here](DEVELOPMENT_NOTES.md)
+
+Higher level pipelines and workflows for viral-ngs can be found in the [pipelines github repo](https://github.com/broadinstitute/viral-pipelines).
