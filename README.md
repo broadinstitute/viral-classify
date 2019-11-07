@@ -1,10 +1,9 @@
 [![Docker Repository on Quay](https://quay.io/repository/broadinstitute/viral-classify/status "Docker Repository on Quay")](https://quay.io/repository/broadinstitute/viral-classify)
 [![Build Status](https://travis-ci.com/broadinstitute/viral-classify.svg?branch=master)](https://travis-ci.com/broadinstitute/viral-classify)
+[![Documentation Status](https://readthedocs.org/projects/viral-classify/badge/?version=latest)](https://viral-classify.readthedocs.io/en/latest/?badge=latest)
 <!--
 [![Coverage Status](https://coveralls.io/repos/broadinstitute/viral-ngs/badge.png)](https://coveralls.io/r/broadinstitute/viral-ngs)
 [![Code Health](https://landscape.io/github/broadinstitute/viral-ngs/master/landscape.svg?style=flat)](https://landscape.io/github/broadinstitute/viral-ngs)
-[![Documentation Status](https://readthedocs.org/projects/viral-ngs/badge/?version=latest)](http://viral-ngs.readthedocs.io/en/latest/?badge=latest)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.252549.svg)](https://doi.org/10.5281/zenodo.252549)
 -->
 
 viral-ngs
