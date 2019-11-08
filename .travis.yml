@@ -80,4 +80,4 @@ jobs:
         - echo "pulling $DOCKER_TAG"
         - docker pull $DOCKER_TAG
       script:
-        - docker run --entrypoint /bin/bash $DOCKER_TAG -c 'set -e; cd /opt/viral-ngs/source; travis/install-pip-docs.sh; cd docs; make html'
+        - docker run --entrypoint /bin/bash -v `pwd`:/opt/viral-ngs/viral-classify $DOCKER_TAG -c 'set -e; cd /opt/viral-ngs/viral-classify; travis/install-pip-docs.sh; cd docs; make html'
