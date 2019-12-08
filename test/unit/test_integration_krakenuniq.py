@@ -34,7 +34,7 @@ def input_bam(db_type):
 
 @pytest.fixture(scope='module')
 def kraken():
-    kraken = tools.kraken.Kraken()
+    kraken = classify.kraken.Kraken()
     kraken.install()
     return kraken
 

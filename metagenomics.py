@@ -1419,6 +1419,37 @@ def kraken_build(db, library, taxonomy=None, subsetTaxonomy=None,
         if not library_exists:
             raise FileNotFoundError('Library directory {} not found'.format(library_dir))
 
+    def kraken_library_ids(library):
+        '''Parse gi/accession from ids of fasta files in library directory. '''
+        library_taxids = set()
+        library_gis = set()
+        library_accessions = set()
+        for dirpath, dirnames, filenames in os.walk(library, followlinks=True):
+            for filename in filenames:
+                if not filename.endswith('.fna') and not filename.endswith('.fa') and not filename.endswith('.ffn'):
+                    continue
+                filepath = os.path.join(dirpath, filename)
+                for seqr in SeqIO.parse(filepath, 'fasta'):
+                    name = seqr.name
+                    # Search for encoded taxid
+                    mo = re.search(r'kraken:taxid\|(\d+)\|', name)
+                    if mo:
+                        taxid = int(mo.group(1))
+                        library_taxids.add(taxid)
+                        continue
+                    # Search for gi
+                    mo = re.search(r'gi\|(\d+)\|', name)
+                    if mo:
+                        gi = int(mo.group(1))
+                        library_gis.add(gi)
+                        continue
+                    # Search for accession
+                    mo = re.search(r'([A-Z]+\d+\.\d+)', name)
+                    if mo:
+                        accession = mo.group(1)
+                        library_accessions.add(accession)
+        return library_taxids, library_gis, library_accessions
+
     taxonomy_dir = os.path.join(db, 'taxonomy')
     taxonomy_exists = os.path.exists(taxonomy_dir)
     if taxonomy:
