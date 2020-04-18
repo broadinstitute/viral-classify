@@ -49,25 +49,27 @@ def krakenuniq():
 def db_type(request):
     return request.param
 
-#@pytest.fixture(scope='module')
-#def kraken_db(request, tmpdir_module, kraken, db_type):
-#    data_dir = join(util.file.get_test_input_path(), db_type)
-#    db_dir = join(data_dir, 'db')
-#
-#    parser = metagenomics.parser_kraken(argparse.ArgumentParser())
-#
-#    db = os.path.join(tmpdir_module, 'kraken_db_{}'.format(db_type))
-#    parser = metagenomics.parser_kraken_build(argparse.ArgumentParser())
-#    cmd = [db, '--library', join(db_dir, 'library'),
-#           '--taxonomy', join(db_dir, 'taxonomy'),
-#           '--subsetTaxonomy',
-#           '--minimizerLen', '10',
-#           '--clean']
-#
-#    parser.parse_args(cmd)
-#    args = parser.parse_args(cmd)
-#    args.func_main(args)
-#    return db
+"""
+@pytest.fixture(scope='module')
+def kraken_db(request, tmpdir_module, kraken, db_type):
+    data_dir = join(util.file.get_test_input_path(), db_type)
+    db_dir = join(data_dir, 'db')
+
+    parser = metagenomics.parser_kraken(argparse.ArgumentParser())
+
+    db = os.path.join(tmpdir_module, 'kraken_db_{}'.format(db_type))
+    parser = metagenomics.parser_kraken_build(argparse.ArgumentParser())
+    cmd = [db, '--library', join(db_dir, 'library'),
+           '--taxonomy', join(db_dir, 'taxonomy'),
+           '--subsetTaxonomy',
+           '--minimizerLen', '10',
+           '--clean']
+
+    parser.parse_args(cmd)
+    args = parser.parse_args(cmd)
+    args.func_main(args)
+    return db
+"""
 
 @pytest.fixture(scope='module')
 def krakenuniq_db(request, tmpdir_module, krakenuniq, db_type):
@@ -87,13 +89,14 @@ def krakenuniq_db(request, tmpdir_module, krakenuniq, db_type):
     args.func_main(args)
     return db
 
+"""
 def test_kraken(kraken_db, input_bam):
     out_report = util.file.mkstempfname('.report')
     out_reads = util.file.mkstempfname('.reads.gz')
     cmd = [kraken_db, input_bam, '--outReports', out_report, '--outReads', out_reads]
     parser = metagenomics.parser_kraken(argparse.ArgumentParser())
     args = parser.parse_args(cmd)
-    #args.func_main(args)
+    args.func_main(args)
 
     with util.file.open_or_gzopen(out_reads, 'r') as inf:
         assert len(inf.read()) > 0
@@ -116,7 +119,6 @@ def test_kraken(kraken_db, input_bam):
         assert not tai_found
     '''
 
-'''
 def test_kraken_multi(kraken_db):
     in_bams = list(os.path.join(util.file.get_test_input_path(), d, 'test-reads.bam') for d in ('TestMetagenomicsSimple', 'TestMetagenomicsViralMix'))
     out_reports = list(util.file.mkstempfname('.out_{}.report.txt'.format(i)) for i in (1,2))
@@ -135,7 +137,6 @@ def test_kraken_multi(kraken_db):
     for outfile in out_reports:
         with util.file.open_or_gzopen(outfile) as inf:
             assert len(inf.read()) > 0
-'''
 
 @unittest.skip("this deadlocks currently...")
 def test_kraken_fifo(kraken_db):
@@ -165,7 +166,6 @@ def test_kraken_fifo(kraken_db):
         with util.file.open_or_gzopen(outfile) as inf:
             assert len(inf.read()) > 0
 
-'''
 def test_kraken_krona(kraken_db, krona_db, input_bam):
     out_report = util.file.mkstempfname('.report')
     out_reads = util.file.mkstempfname('.reads.gz')
@@ -198,7 +198,7 @@ def test_kraken_on_empty(kraken_db, input_bam):
     assert len(out_report_contents) == 1
     out_report_contents = out_report_contents[0].rstrip('\n').split('\t')
     assert out_report_contents == ['100.00', '0', '0', 'U', '0', 'unclassified']
-'''
+"""
 
 def test_krakenuniq(krakenuniq_db, input_bam):
     out_report = util.file.mkstempfname('.report')
