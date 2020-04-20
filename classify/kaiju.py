@@ -2,6 +2,7 @@
 Kaiju - DNA-to-protein metagenomic classifier
 '''
 from builtins import super
+import argparse
 import collections
 import itertools
 import logging
@@ -183,3 +184,21 @@ class Kaiju(tools.Tool):
                     tax_id = parts[3]
                 report[tax_id] = reads
         return report
+
+
+def parser_kaiju(parser=argparse.ArgumentParser()):
+    parser.add_argument('inBam', help='Input unaligned reads, BAM format.')
+    parser.add_argument('db', help='Kaiju database .fmi file.')
+    parser.add_argument('taxDb', help='Taxonomy database directory.')
+    parser.add_argument('outReport', help='Output taxonomy report.')
+    parser.add_argument('--outReads', help='Output LCA assignments for each read.')
+    util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
+    util.cmd.attach_main(parser, kaiju, split_args=True)
+    return parser
+def kaiju(inBam, db, taxDb, outReport, outReads=None, threads=None):
+    '''
+        Classify reads by the taxon of the Lowest Common Ancestor (LCA)
+    '''
+
+    kaiju_tool = Kaiju()
+    kaiju_tool.classify(db, taxDb, inBam, output_report=outReport, output_reads=outReads, num_threads=threads)

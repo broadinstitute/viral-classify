@@ -1,6 +1,4 @@
-# Unit tests for MEGAN
-
-from builtins import super
+# Tests for MEGAN
 import unittest
 import classify.megan
 from test import TestCaseWithTmp

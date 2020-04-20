@@ -1,4 +1,4 @@
-"""Unit tests for kmer_utils.py"""
+"""Tests for kmer_utils.py"""
 
 __author__ = "ilya@broadinstitute.org"
 
@@ -16,11 +16,12 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 import pytest
 
-import kmer_utils
 import read_utils
 import util.cmd
 import util.file
 import util.misc
+import classify.kmer_utils as kmer_utils
+import classify.kmc as kmc
 import classify.kmc
 import tools.samtools
 
@@ -231,7 +232,7 @@ class KmcPy(object):
             raise ValueError('Unknown operation: {}'.format(op))
         return self._filter_kmer_counts(counts=result, counter_cap=result_counter_cap)
 
-# end: class KmcPy    
+# end: class KmcPy
 
 kmcpy = KmcPy()
 
@@ -321,7 +322,7 @@ def _test_build_kmer_db(kmer_db_fixture):
     assert kmer_db_fixture.kmc_kmer_counts == kmcpy_kmer_counts
 
 ###########
-SEQ_FILES = [ 
+SEQ_FILES = [
     # 'empty.fasta',
     # 'ebola.fasta.gz',
     # 'almost-empty-2.bam',
@@ -366,7 +367,7 @@ def _test_filter_reads(kmer_db_fixture, reads_file, filter_opts, tmpdir_function
     reads_file_out = os.path.join(tmpdir_function, 'reads_out' + util.file.uncompressed_file_type(reads_file))
 
     filter_args = util.cmd.run_cmd(module=kmer_utils, cmd='filter_reads',
-                                   args=[kmer_db_fixture.kmer_db, 
+                                   args=[kmer_db_fixture.kmer_db,
                                          reads_file, reads_file_out] + filter_opts.split()).args_parsed
 
     _log.debug('Running filte: kmer_db_args=%s filter_arg=%s', kmer_db_fixture.kmer_db_args, filter_args)

@@ -78,7 +78,7 @@ __commands__.append(('dump_kmer_counts', parser_dump_kmer_counts))
 # =========================
 
 def filter_reads(kmer_db, in_reads, out_reads, db_min_occs=1, db_max_occs=util.misc.MAX_INT32,
-                 read_min_occs=0, read_max_occs=util.misc.MAX_INT32, 
+                 read_min_occs=0, read_max_occs=util.misc.MAX_INT32,
                  read_min_occs_frac=0.0, read_max_occs_frac=1.0, hard_mask=False, threads=None):
     """Filter reads based on their kmer contents.
 
