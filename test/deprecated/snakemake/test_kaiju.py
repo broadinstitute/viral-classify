@@ -6,10 +6,9 @@ import sys
 import pytest
 
 import tools
-from test.pipelines.snakemake import snake
-from test.integration.test_kaiju import * # for pytest fixtures
+from test.deprecated.snakemake import snake
 
-@pytest.mark.skipif(sys.version_info < (3, 5), reason="Python version is too old for snakemake.")
+@pytest.mark.skip(reason='deprecated')
 def test_pipes(tmpdir_function, kaiju_db, taxonomy_db, krona_db, input_bam):
     runner = snake.SnakemakeRunner(workdir=tmpdir_function)
     override_config = {

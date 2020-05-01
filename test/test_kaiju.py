@@ -1,5 +1,4 @@
-# Integration tests for kaiju
-from builtins import super
+# Tests for kaiju
 import argparse
 import binascii
 import fnmatch
@@ -14,12 +13,12 @@ import lxml.html.clean
 import pytest
 from Bio import SeqIO
 
-import metagenomics
 import tools
 import classify.kaiju
+import classify.krona
 import tools.picard
 import util.file
-import test.unit.fixtures
+import test.fixtures
 
 
 def is_gz_file(filepath):
@@ -34,9 +33,9 @@ def find_files(root_dir, filt):
             yield join(root, filename)
 
 
-krona = pytest.fixture(scope='module')(test.unit.fixtures.krona)
-krona_db = pytest.fixture(scope='module')(test.unit.fixtures.krona_db)
-taxonomy_db = pytest.fixture(scope='module')(test.unit.fixtures.taxonomy_db)
+krona = pytest.fixture(scope='module')(test.fixtures.krona)
+krona_db = pytest.fixture(scope='module')(test.fixtures.krona_db)
+taxonomy_db = pytest.fixture(scope='module')(test.fixtures.taxonomy_db)
 
 
 @pytest.fixture(scope='module')
@@ -119,7 +118,7 @@ def test_kaiju(kaiju_db, krona_db, taxonomy_db, input_bam):
     out_report = util.file.mkstempfname('.report')
     out_reads = util.file.mkstempfname('.reads')
     cmd = [input_bam, kaiju_db, taxonomy_db, out_report, '--outReads', out_reads]
-    parser = metagenomics.parser_kaiju(argparse.ArgumentParser())
+    parser = classify.kaiju.parser_kaiju(argparse.ArgumentParser())
     args = parser.parse_args(cmd)
     args.func_main(args)
 
@@ -147,11 +146,10 @@ def test_kaiju(kaiju_db, krona_db, taxonomy_db, input_bam):
         assert not tai_found
 
     out_html = util.file.mkstempfname('.krona.html')
-    parser = metagenomics.parser_krona(argparse.ArgumentParser())
+    parser = classify.krona.parser_krona(argparse.ArgumentParser())
     args = parser.parse_args(['--inputType', 'kaiju', out_report, krona_db, out_html])
     args.func_main(args)
 
-    ''' well... this doesn't actually find Zaire ebolavirus!
     if 'TestMetagenomicsSimple' in kaiju_db:
       ebola_found = False
       cleaner = lxml.html.clean.Cleaner(remove_unknown_tags=False, page_structure=False)
@@ -162,4 +160,3 @@ def test_kaiju(kaiju_db, krona_db, taxonomy_db, input_bam):
               if int(n.xpath('magnitude/val')[0].text) > 0:
                   ebola_found = True
       assert ebola_found
-    '''

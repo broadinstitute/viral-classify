@@ -3,6 +3,7 @@
 # built-ins
 import os
 import logging
+from pathlib import Path
 import subprocess
 
 # within this module
@@ -46,7 +47,7 @@ class Lastal(LastTools):
         ):
 
             # convert BAM to interleaved FASTQ with no /1 /2 appended to the read IDs
-            fastq_pipe = tools.samtools.SamtoolsTool().bam2fq_pipe(inBam)
+            fastq_pipe = tools.samtools.SamtoolsTool().bam2fq_pipe(str(inBam))
 
             # run lastal and emit list of read IDs
             # -P 0 = use threads = core count
@@ -104,13 +105,13 @@ class Lastdb(LastTools):
 
         # we can pass in a string containing a fasta file path
         # or a list of strings
-        if isinstance(fasta_files, str):
+        if isinstance(fasta_files, str) or isinstance(fasta_files, Path):
             fasta_files = [fasta_files]
         elif isinstance(fasta_files, list) and fasta_files:
             pass
         else:
             raise TypeError("fasta_files was not a single fasta file, nor a list of fasta files") # or something along that line
-
+        fasta_files = [os.fspath(x) for x in fasta_files]
         # if more than one fasta file is specified, join them
         # otherwise if only one is specified, just use it
         if len(fasta_files) == 1 and not fasta_files[0].endswith('.gz'):
@@ -119,7 +120,7 @@ class Lastdb(LastTools):
             input_fasta = util.file.mkstempfname(".fasta")
             util.file.cat(input_fasta, fasta_files) # automatically decompresses gz inputs
 
-        self.execute(input_fasta, output_directory, output_file_prefix)    
+        self.execute(input_fasta, output_directory, output_file_prefix)
 
         return os.path.join(output_directory, output_file_prefix)
 
@@ -142,7 +143,6 @@ class Lastdb(LastTools):
         # lastdb writes files to the current working directory, so we need to set
         # it to the desired output location
         with util.file.pushd_popd(os.path.realpath(outputDirectory)):
+            tool_cmd = [os.fspath(x) for x in tool_cmd]
             _log.debug(" ".join(tool_cmd))
             subprocess.check_call(tool_cmd)
-
-

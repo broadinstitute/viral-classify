@@ -1,6 +1,4 @@
-# Unit tests for diamond
-
-from builtins import super
+# Tests for diamond
 import collections
 import glob
 import mock

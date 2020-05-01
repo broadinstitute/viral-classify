@@ -31,7 +31,8 @@ else:
 
 def assert_equal_contents(testCase, filename1, filename2):
     'Assert contents of two files are equal for a unittest.TestCase'
-    testCase.assertTrue(filecmp.cmp(filename1, filename2, shallow=False))
+    assert filecmp.cmp(filename1, filename2, shallow=False)
+    # testCase.assertTrue(filecmp.cmp(filename1, filename2, shallow=False))
 
 
 def assert_equal_bam_reads(testCase, bam_filename1, bam_filename2):
@@ -51,11 +52,12 @@ def assert_equal_bam_reads(testCase, bam_filename1, bam_filename2):
     sam_two = util.file.mkstempfname(".sam")
 
     # write the bam files to sam format, without header (no -h)
-    samtools.view(args=[], inFile=bam_filename1, outFile=sam_one)
-    samtools.view(args=[], inFile=bam_filename2, outFile=sam_two)
+    samtools.view(args=[], inFile=str(bam_filename1), outFile=sam_one)
+    samtools.view(args=[], inFile=str(bam_filename2), outFile=sam_two)
 
     try:
-        testCase.assertTrue(filecmp.cmp(sam_one, sam_two, shallow=False))
+        # testCase.assertTrue(filecmp.cmp(sam_one, sam_two, shallow=False))
+        assert filecmp.cmp(sam_one, sam_two, shallow=False)
     finally:
         for fname in [sam_one, sam_two]:
             if os.path.exists(fname):
@@ -79,8 +81,8 @@ def assert_md5_equal_to_line_in_file(testCase, filename, checksum_file, msg=None
     expected_checksum = expected_checksum.replace("\r","").replace("\n","")
 
     assert len(expected_checksum) > 0
-
-    testCase.assertEqual(hash_md5.hexdigest(), expected_checksum, msg=msg)
+    assert hash_md5.hexdigest() == expected_checksum
+    # testCase.assertEqual(hash_md5.hexdigest(), expected_checksum, msg=msg)
 
 @pytest.mark.usefixtures('tmpdir_class')
 class TestCaseWithTmp(unittest.TestCase):

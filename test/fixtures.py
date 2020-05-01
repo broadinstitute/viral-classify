@@ -8,19 +8,16 @@ import tools.picard
 import classify.krona
 import util.file
 
-# @pytest.fixture(scope='module')
 def krona():
     krona = classify.krona.Krona()
     krona.install()
     return krona
 
 
-# @pytest.fixture(scope='module', params=['TestMetagenomicsSimple', 'TestMetagenomicsViralMix'])
 def db_type(request):
     return request.param
 
 
-# @pytest.fixture(scope='module')
 def krona_db(request, tmpdir_module, krona, db_type):
     data_dir = join(util.file.get_test_input_path(), db_type)
     db_dir = join(data_dir, 'db')
