@@ -37,8 +37,7 @@ class Kraken(tools.Tool):
     def __init__(self, install_methods=None):
         self.subtool_name = self.subtool_name if hasattr(self, "subtool_name") else "kraken"
         if not install_methods:
-            install_methods = []
-            install_methods.append(tools.CondaPackage('kraken', executable=self.subtool_name, version=KRAKEN_VERSION, channel='broad-viral'))
+            install_methods = [tools.PrexistingUnixCommand(shutil.which(self.subtool_name), require_executability=False)]
         super(Kraken, self).__init__(install_methods=install_methods)
 
     def version(self):
@@ -290,8 +289,7 @@ class KrakenUniq(Kraken):
     def __init__(self, install_methods=None):
         self.subtool_name = self.subtool_name if hasattr(self, 'subtool_name') else 'krakenuniq'
         if not install_methods:
-            install_methods = []
-            install_methods.append(tools.CondaPackage('krakenuniq', executable=self.subtool_name, version=KRAKENUNIQ_VERSION, channel='broad-viral'))
+            install_methods = [tools.PrexistingUnixCommand(shutil.which(self.subtool_name), require_executability=False)]
         super(KrakenUniq, self).__init__(install_methods=install_methods)
 
     def version(self):
