@@ -23,9 +23,7 @@ class Diamond(tools.Tool):
 
     def __init__(self, install_methods=None):
         if not install_methods:
-            install_methods = [
-                tools.CondaPackage("diamond", version=TOOL_VERSION)
-            ]
+            install_methods = [tools.PrexistingUnixCommand(shutil.which('diamond'))]
         super(Diamond, self).__init__(install_methods=install_methods)
 
     def version(self):
