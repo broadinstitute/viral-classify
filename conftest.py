@@ -140,13 +140,6 @@ def monkeypatch_function_result(monkeypatch):
     return _set_function_result
 
 
-@pytest.fixture(scope='module', autouse=True)
-def stub_conda(request):
-    cls = tools.CondaPackage
-    tools.CondaPackage = test.stubs.StubCondaPackage
-    yield
-    tools.CondaPackage = cls
-
 
 class FixtureReporter:
 
