@@ -100,7 +100,7 @@ class KmcPy(object):
     def _revcomp(self, kmer):
         """Return the reverse complement of a kmer, given as a string"""
         assert isinstance(kmer, str)
-        return str(Seq(kmer, annotations={"molecule_type": "DNA"}).reverse_complement())
+        return str(SeqRecord(Seq(kmer), annotations={"molecule_type": "DNA"}).seq.reverse_complement())
 
     def _canonicalize(self, kmer):
         """Return the canonical version of a kmer"""
