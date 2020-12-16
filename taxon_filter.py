@@ -46,7 +46,7 @@ log = logging.getLogger(__name__)
 
 def parser_deplete(parser=argparse.ArgumentParser()):
     parser.add_argument('inBam', help='Input BAM file.')
-    parser.add_argument('revertBam', nargs='?', help='Output BAM: read markup reverted with Picard.')
+    parser.add_argument('revertBam', help='Output BAM: read markup reverted with Picard.')
     parser.add_argument('bwaBam', help='Output BAM: depleted of reads with BWA.')
     parser.add_argument('bmtaggerBam', help='Output BAM: depleted of reads with BMTagger.')
     parser.add_argument(
