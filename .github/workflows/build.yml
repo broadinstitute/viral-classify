@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       # fetch git tags (tagged releases) because
       # actions/checkout@v2 does either a full checkout or a shallow checkout without tags
       - name: fetch tags
