@@ -1,4 +1,4 @@
-name: "viral-assemble CI"
+name: "viral-classify CI"
 
 on:
   push:
@@ -19,8 +19,8 @@ env:
   PYTHONIOENCODING: UTF8
   
   DOCKER_REGISTRY: "quay.io"
-  DOCKER_REPO_PROD: "quay.io/broadinstitute/viral-assemble"
-  DOCKER_REPO_DEV: "quay.io/broadinstitute/viral-assemble"
+  DOCKER_REPO_PROD: "quay.io/broadinstitute/viral-classify"
+  DOCKER_REPO_DEV: "quay.io/broadinstitute/viral-classify"
   
   #BOTO_CONFIG: /dev/null # bogus value to override config on travis
   _JAVA_OPTIONS: "-Xmx3g" # overrides jvm opts set elsewhere; see: https://stackoverflow.com/questions/28327620/difference-between-java-options-java-tool-options-and-java-opts
