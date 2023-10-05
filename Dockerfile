@@ -6,6 +6,7 @@ ENV VIRAL_CLASSIFY_PATH=$INSTALL_PATH/viral-classify \
 	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin"
 
 COPY requirements-conda.txt requirements-conda-env2.txt $VIRAL_CLASSIFY_PATH/
+COPY classify/megablast_nt_trimmed_down.sh classify/retrieve_top_blast_hits_LCA_for_each_sequence.pl $VIRAL_CLASSIFY_PATH/
 RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda.txt 
 RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; conda config --set channel_priority strict; conda create -q -y -n env2; $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env2.txt
 
