@@ -5,8 +5,7 @@ LABEL maintainer "viral-ngs@broadinstitute.org"
 ENV VIRAL_CLASSIFY_PATH=$INSTALL_PATH/viral-classify \
 	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin"
 
-COPY requirements-conda.txt requirements-conda-env2.txt $VIRAL_CLASSIFY_PATH/
-COPY classify/taxon_id_scripts/. $VIRAL_CLASSIFY_PATH/
+COPY requirements-conda.txt requirements-conda-env2.txt $VIRAL_CLASSIFY_
 RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda.txt 
 RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; conda config --set channel_priority strict; conda create -q -y -n env2; $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env2.txt
 
@@ -16,7 +15,7 @@ RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; conda config --set channel_priorit
 COPY . $VIRAL_CLASSIFY_PATH
 
 # Link key bits of python code into the path
-RUN ln -s $VIRAL_CLASSIFY_PATH/metagenomics.py $VIRAL_CLASSIFY_PATH/taxon_filter.py $VIRAL_CLASSIFY_PATH/kmer_utils.py $VIRAL_CLASSIFY_PATH/classify $VIRAL_NGS_PATH
+RUN ln -s $VIRAL_CLASSIFY_PATH/taxon_id_scripts/* $VIRAL_CLASSIFY_PATH/metagenomics.py $VIRAL_CLASSIFY_PATH/taxon_filter.py $VIRAL_CLASSIFY_PATH/kmer_utils.py $VIRAL_CLASSIFY_PATH/classify $VIRAL_NGS_PATH
 
 # This not only prints the current version string, but it
 # also saves it to the VERSION file for later use and also
