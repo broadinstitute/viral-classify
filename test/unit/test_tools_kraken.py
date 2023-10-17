@@ -65,6 +65,7 @@ def test_kraken_report(mocks, kraken, db):
     assert in_reads in args
     assert util.misc.list_contains(['--db', db], args)
 
+@pytest.mark.skip(reason="KrakenUniq disabled from future versions for now, pending conda rebuild of @yesimon's custom fork")
 def test_krakenuniq_classify(mocks, krakenuniq, db, in_bam):
     out_reads = util.file.mkstempfname('.reads.txt')
     krakenuniq.classify(in_bam, db, out_reads)
@@ -93,6 +94,7 @@ def test_classify_kraken_num_threads(mocks, kraken, db, in_bam):
         actual = args[args.index('--threads')+1]
         assert actual == str(expected), "failure for requested %s, expected %s, actual %s" % (requested, expected, actual)
 
+@pytest.mark.skip(reason="KrakenUniq disabled from future versions for now, pending conda rebuild of @yesimon's custom fork")
 def test_classify_krakenuniq_num_threads(mocks, krakenuniq, db, in_bam):
     out_reads = util.file.mkstempfname('.reads.txt')
 
