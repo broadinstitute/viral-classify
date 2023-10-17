@@ -1,3 +1,1 @@
-krakenuniq>=0.5.7_yesimon
 kaiju>=1.6.3_yesimon
-perl-libwww-perl
