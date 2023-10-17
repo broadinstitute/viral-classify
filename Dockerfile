@@ -12,7 +12,7 @@ RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/re
 
 # install packages with dependency incompatibilities to the second environment
 RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; \
-	#conda config --set channel_priority strict; \
+	conda config --set channel_priority strict; \
 	conda create -q -y -n env2; \
 	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env2.txt
 
