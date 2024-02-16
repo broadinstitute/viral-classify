@@ -7,7 +7,7 @@ ENV VIRAL_CLASSIFY_PATH=$INSTALL_PATH/viral-classify \
 
 COPY requirements-conda.txt requirements-conda-env2.txt $VIRAL_CLASSIFY_PATH/
 # install most dependencies to the main environment
-RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda.txt 
+RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda.txt $VIRAL_NGS_PATH/requirements-conda.txt
 
 # install packages with dependency incompatibilities to the second environment
 RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; \
