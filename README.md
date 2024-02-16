@@ -9,6 +9,7 @@
 viral-classify
 =========
 
+
 A set of scripts and tools for taxonomic identification, classification, and filtration from NGS data, with a focus on viral applications.
 
 More detailed command line documentation can be found at [readthedocs](http://viral-classify.readthedocs.org/)
