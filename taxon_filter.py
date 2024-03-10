@@ -551,7 +551,7 @@ def chunk_blast_hits(inBam, db, blast_hits_output, threads=None, chunkSize=10000
             log.info("running blastn on %s against %s", inBam, db)
             blastn_chunked_fasta(inBam, db_prefix, blast_hits_output, chunkSize, threads)
 
-def parser_chunk_blast_hits(parser=argparse.ArgumentParses()):
+def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument('inBam', help='Input BAM file.')
     parser.add_argument('db', help='BLASTN database.')
     parser.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
@@ -559,8 +559,6 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParses()):
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, main_chunk_blast_hits)
     return parser
-
-
 
 def main_deplete_blastn_bam(args):
     '''Use blastn to remove reads that match at least one of the specified databases.'''
