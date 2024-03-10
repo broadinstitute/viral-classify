@@ -511,10 +511,10 @@ def deplete_blastn_bam(inBam, db, outBam, threads=None, chunkSize=1000000, JVMme
                 for read_id in classify.blast.BlastnTool().get_hits_bam(inBam, db_prefix, threads=threads):
                     outf.write(read_id + '\n')
 
+
     # Deplete BAM of hits
     tools.picard.FilterSamReadsTool().execute(inBam, True, blast_hits, outBam, JVMmemory=JVMmemory)
     os.unlink(blast_hits)
-
 
 def parser_deplete_blastn_bam(parser=argparse.ArgumentParser()):
     parser.add_argument('inBam', help='Input BAM file.')
@@ -531,6 +531,35 @@ def parser_deplete_blastn_bam(parser=argparse.ArgumentParser()):
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, main_deplete_blastn_bam)
     return parser
+
+def chunk_blast_hits(inBam, db, blast_hits_output, threads=None, chunkSize=1000000):
+#def deplete_blastn_bam(inBam, db, blast_hits_output, threads, chunkSize=0):
+    'Use blastn to remove reads that match at least one of the databases.'
+
+    blast_hits = mkstempfname('.blast_hits.txt')
+
+    with extract_build_or_use_database(db, blastn_build_db, 'nin', tmp_suffix="-blastn_db_unpack", db_prefix="blastn") as (db_prefix,tempDir):
+        if chunkSize:
+            ## chunk up input and perform blastn in several parallel threads
+            with util.file.tempfname('.fasta') as reads_fasta:
+                tools.samtools.SamtoolsTool().bam2fa(inBam, reads_fasta)
+                log.info("running blastn on %s against %s", inBam, db)
+                blastn_chunked_fasta(reads_fasta, db_prefix, blast_hits, chunkSize, threads)
+
+        else:
+            ## pipe tools together and run blastn multithreaded
+            log.info("running blastn on %s against %s", inBam, db)
+            blastn_chunked_fasta(inBam, db_prefix, blast_hits_output, chunkSize, threads)
+
+def parser_chunk_blast_hits(parser=argparse.ArgumentParses()):
+    parser.add_argument('inBam', help='Input BAM file.')
+    parser.add_argument('db', help='BLASTN database.')
+    parser.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
+    parser.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size (default: %(default)s)')
+    util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
+    util.cmd.attach_main(parser, main_chunk_blast_hits)
+    return parser
+
 
 
 def main_deplete_blastn_bam(args):
