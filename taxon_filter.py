@@ -557,7 +557,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
     parser.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size (default: %(default)s)')
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
-    util.cmd.attach_main(parser, main_chunk_blast_hits)
+    util.cmd.attach_main(parser, chunk_blast_hits)
     return parser
 
 def main_deplete_blastn_bam(args):
