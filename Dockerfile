@@ -3,9 +3,9 @@ FROM quay.io/broadinstitute/viral-core:2.3.1
 LABEL maintainer "viral-ngs@broadinstitute.org"
 
 ENV VIRAL_CLASSIFY_PATH=$INSTALL_PATH/viral-classify \
-	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin"
+	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin:$MINICONDA_PATH/envs/env3/bin"
 
-COPY requirements-conda.txt requirements-conda-env2.txt $VIRAL_CLASSIFY_PATH/
+COPY requirements-conda.txt requirements-conda-env2.txt requirements-conda-env3.txt $VIRAL_CLASSIFY_PATH/
 # install most dependencies to the main environment
 RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda.txt $VIRAL_NGS_PATH/requirements-conda.txt
 
@@ -14,6 +14,12 @@ RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; \
 	conda config --set channel_priority strict; \
 	conda create -q -y -n env2; \
 	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env2.txt
+
+# install packages with dependency incompatibilities to the third environment
+RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env3"; \
+	conda config --set channel_priority strict; \
+	conda create -q -y -n env3; \
+	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env3.txt
 
 # Copy all source code into the base repo
 # (this probably changes all the time, so all downstream build
