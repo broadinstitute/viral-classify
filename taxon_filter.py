@@ -38,9 +38,6 @@ import classify.bmtagger
 import read_utils
 
 log = logging.getLogger(__name__)
-logger = logging.getLogger(__name__)
-
-
 
 # =======================
 # ***  deplete  ***
@@ -421,7 +418,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
     # just in case blast is not installed, install it once, not many times in parallel!
     
     #checks if the blastn_chunked_fasta function is being called
-    logger.info("Calling blastn_chunked_fasta function...")
+    log.info("Calling blastn_chunked_fasta function...")
     classify.blast.BlastnTool().install()
 
     # clamp threadcount to number of CPU cores
@@ -431,8 +428,8 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
     number_of_reads = util.file.fasta_length(fasta)
     log.debug("number of reads in fasta file %s" % number_of_reads)
     if number_of_reads == 0:
+        log.info("Number of reads is 0. Empty output file.")
         util.file.make_empty(out_hits)
-
     # divide (max, single-thread) chunksize by thread count
     # to find the  absolute max chunk size per thread
     chunk_max_size_per_thread = chunkSize // threads
