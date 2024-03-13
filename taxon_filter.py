@@ -38,6 +38,8 @@ import classify.bmtagger
 import read_utils
 
 log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
 
 
 # =======================
@@ -416,8 +418,10 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
     # too small and the overhead of spawning a new blast process
     # will be detrimental relative to actual computation time
     MIN_CHUNK_SIZE = 20000
-
     # just in case blast is not installed, install it once, not many times in parallel!
+    
+    #checks if the blastn_chunked_fasta function is being called
+    logger.info("Calling blastn_chunked_fasta function...")
     classify.blast.BlastnTool().install()
 
     # clamp threadcount to number of CPU cores
@@ -557,8 +561,8 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
     parser.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size (default: %(default)s)')
     parser.add_argument("-task", help="details the type of search (i.e. megablast,blatn,etc)")
-    parser.add_argument("-outfmt", default=6, help="Custom output formats(default: %(default)s)")
-    parser.add_argument("max_target_seqs", default=1, help="BLAST will return the first (if set to default) database hits for a sequence query. (default: %(default)s)")
+    parser.add_argument("-outfmt", type=int, default=6, help="Custom output formats(default: %(default)s)")
+    parser.add_argument("max_target_seqs", type=int, default=1, help="BLAST will return the first (if set to default) database hits for a sequence query. (default: %(default)s)")
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, chunk_blast_hits)
     return parser
