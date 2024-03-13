@@ -397,15 +397,15 @@ def multi_db_deplete_bam(inBam, refDbs, deplete_method, outBam, **kwargs):
 # ========================
 
 
-def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads):
+def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfmt=6, max_target_seqs=1):
     """ run blastn on the input fasta file. this is intended to be run in parallel
         by blastn_chunked_fasta
     """
     with util.file.open_or_gzopen(out_hits, 'wt') as outf:
-        for read_id in classify.blast.BlastnTool().get_hits_fasta(input_fasta, db, threads=blast_threads):
+        for read_id in classify.blast.BlastnTool().get_hits_fasta(input_fasta, db, threads=blast_threads, task=task, outfmt=outfmt):
             outf.write(read_id + '\n')
 
-def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None):
+def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, task=None, outfmt=6, max_target_seqs=1):
     """
     Helper function: blastn a fasta file, overcoming apparent memory leaks on
     an input with many query sequences, by splitting it into multiple chunks
@@ -482,7 +482,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None):
         blast_threads = 2*max(1, int(cpus_leftover / num_chunks))
         for i in range(num_chunks):
             executor.submit(
-                _run_blastn_chunk, db, input_fastas[i], hits_files[i], blast_threads)
+                _run_blastn_chunk, db, input_fastas[i], hits_files[i], blast_threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs)
 
     # merge results and clean up
     util.file.cat(out_hits, hits_files)
