@@ -38,7 +38,7 @@ import classify.bmtagger
 import read_utils
 
 log = logging.getLogger(__name__)
-
+logging.basicConfig(level=logging.DEBUG)
 # =======================
 # ***  deplete  ***
 # =======================
@@ -425,6 +425,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
     threads = util.misc.sanitize_thread_count(threads)
 
     # determine size of input data; records in fasta file
+    print("No. of Reads")
     number_of_reads = util.file.fasta_length(fasta)
     log.debug("number of reads in fasta file %s" % number_of_reads)
     if number_of_reads == 0:
