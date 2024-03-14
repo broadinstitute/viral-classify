@@ -400,9 +400,15 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfm
     """ run blastn on the input fasta file. this is intended to be run in parallel
         by blastn_chunked_fasta
     """
-    with util.file.open_or_gzopen(out_hits, 'wt') as outf:
-        for read_id in classify.blast.BlastnTool().get_hits_fasta(input_fasta, db, threads=blast_threads, task=task, outfmt=outfmt):
-            outf.write(read_id + '\n')
+    #Check if the function ran succesfully
+    log.info("Running _run_blastn_chunk with input_fasta: %s, out_hits:%s", input_fasta, out_hits)
+    try:
+        with util.file.open_or_gzopen(out_hits, 'wt') as outf:
+            for read_id in classify.blast.BlastnTool().get_hits_fasta(input_fasta, db, threads=blast_threads, task=task, outfmt=outfmt):
+                outf.write(read_id + '\n')
+        log.info("_run_blastn_chunk completed succesfully.")
+    except Exception as e:
+        log.error("An error occurred in_run_blastn_chunk.:%s", e)
 
 def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, task=None, outfmt=6, max_target_seqs=1):
     """
@@ -425,7 +431,6 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
     threads = util.misc.sanitize_thread_count(threads)
 
     # determine size of input data; records in fasta file
-    print("No. of Reads")
     number_of_reads = util.file.fasta_length(fasta)
     log.debug("number of reads in fasta file %s" % number_of_reads)
     if number_of_reads == 0:

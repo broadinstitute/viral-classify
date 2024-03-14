@@ -10,7 +10,8 @@ import tools.samtools
 import util.misc
 
 TOOL_NAME = "blastn"
-
+#Setting up format for logging messages
+_log = logging.getLogger(__name__)
 _log = logging.getLogger(__name__)
 
 class BlastTools(tools.Tool):
@@ -76,6 +77,7 @@ class BlastnTool(BlastTools):
             task=task)
 
     def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt=6, max_target_seqs=1):
+        _log
         with open(inFasta, 'rt') as inf:
             for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt=6, max_target_seqs=1):
                 yield hit
