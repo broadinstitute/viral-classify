@@ -53,10 +53,16 @@ class BlastnTool(BlastTools):
             '-task', str(task) if task else 'blastn', 
         ]
         cmd = [str(x) for x in cmd]
+        #Log BLAST command executed
+        _log.debug('Running blastn command: {}'.format(' '.join(cmd)))
         _log.debug('| ' + ' '.join(cmd) + ' |')
         blast_pipe = subprocess.Popen(cmd, stdin=inPipe, stdout=subprocess.PIPE)
+        output, error = blast_pipe.communicate()
         
-        _log.debug("Blastn process started.")
+        #Display error message if BLAST failed
+        if blast_pipe.returncode!= 0:
+            _log.error('Error running blastn command: {}'.format(error))
+        
         # strip tab output to just query read ID names and emit
         last_read_id = None
         for line in blast_pipe.stdout:
@@ -66,7 +72,7 @@ class BlastnTool(BlastTools):
             if read_id != last_read_id:
                 last_read_id = read_id
                 yield read_id
-
+        #Logging if blastn failed
         if blast_pipe.poll() == 0:
             _log.info("Blastn process completed succesfully.")
         else:
