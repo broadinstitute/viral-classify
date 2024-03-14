@@ -408,7 +408,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfm
                 outf.write(read_id + '\n')
         log.info("_run_blastn_chunk completed succesfully.")
     except Exception as e:
-        log.error("An error occurred in_run_blastn_chunk.:%s", e)
+        log.error("An error occurred in _run_blastn_chunk.:%s", e)
 
 def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, task=None, outfmt=6, max_target_seqs=1):
     """
