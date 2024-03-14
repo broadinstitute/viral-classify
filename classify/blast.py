@@ -40,7 +40,7 @@ class BlastnTool(BlastTools):
     subtool_name = 'blastn'
 
     def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt=6, max_target_seqs=1):
-
+        _log.debug("Executing get_hits_pipe function.")
         # run blastn and emit list of read IDs
         threads = util.misc.sanitize_thread_count(threads)
         cmd = [self.install_and_get_path(),
@@ -50,12 +50,13 @@ class BlastnTool(BlastTools):
             '-evalue', '1e-6',
             '-outfmt', str(outfmt),
             '-max_target_seqs', str(max_target_seqs),
-            -'task', str(task) if task else 'blastn', 
+            '-task', str(task) if task else 'blastn', 
         ]
         cmd = [str(x) for x in cmd]
         _log.debug('| ' + ' '.join(cmd) + ' |')
         blast_pipe = subprocess.Popen(cmd, stdin=inPipe, stdout=subprocess.PIPE)
-
+        
+        _log.debug("Blastn process started.")
         # strip tab output to just query read ID names and emit
         last_read_id = None
         for line in blast_pipe.stdout:
@@ -66,7 +67,10 @@ class BlastnTool(BlastTools):
                 last_read_id = read_id
                 yield read_id
 
-        if blast_pipe.poll():
+        if blast_pipe.poll() == 0:
+            _log.info("Blastn process completed succesfully.")
+        else:
+            _log.error("Blastn process failed with exit code: %s", blast_pipe.returncode)
             raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
 
     def get_hits_bam(self, inBam, db, threads=None, task=None, outfmt=6, max_target_seqs=1):
@@ -77,7 +81,7 @@ class BlastnTool(BlastTools):
             task=task)
 
     def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt=6, max_target_seqs=1):
-        _log
+        _log.debug("Executing get_hits_fasta function.")
         with open(inFasta, 'rt') as inf:
             for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt=6, max_target_seqs=1):
                 yield hit
