@@ -34,7 +34,6 @@
 # [output of retrieve_top_blast_hits_LCA_for_each_sequence.pl for one blast search]
 # [fasta file that was input to blast search (to retrieve sequence lengths and names of unclassified sequences)]
 # > [output kraken format table]
-#
 
 
 use strict;
