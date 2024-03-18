@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Retrieve all matched species, genera, or families.
+# Retrieve NN most frequently matched species, genera, or families.
 
 # Input table is output of retrieve_top_blast_hits_LCA_for_each_sequence.pl with parameter
 # print_matched_accession_numbers set to true (1), with column titles (tab-separated):
@@ -22,14 +22,16 @@
 
 
 # Usage:
-# perl retrieve_all_taxonids_in_LCA_output.pl
+# perl retrieve_most_common_taxonids_in_LCA_output.pl
 # [output of retrieve_top_blast_hits_LCA_for_each_sequence.pl for one blast search]
-# [species, genus, or family]
+# [species, genus, or family] [number most frequent matched species, genera, or families to output, or 0 to output all]
+# [minimum number reads matched by a taxon to report it]
 
 # Prints to console. To print to file, use
-# perl retrieve_all_taxonids_in_LCA_output.pl
+# perl retrieve_most_common_taxonids_in_LCA_output.pl
 # [output of retrieve_top_blast_hits_LCA_for_each_sequence.pl for one blast search]
-# [species, genus, or family] > [output list of taxon ids, one per line]
+# [species, genus, or family] [number most frequent matched species, genera, or families to output, or 0 to output all]
+# [minimum number reads matched by a taxon to report it] > [output list of taxon ids, one per line]
 
 use strict;
 use warnings;
@@ -37,6 +39,8 @@ use warnings;
 
 my $LCA_matches = $ARGV[0]; # output of retrieve_top_blast_hits_LCA_for_each_sequence.pl
 my $rank_of_taxa_to_examine = $ARGV[1]; # species, genus, or family
+my $number_most_frequent_matched_taxa = $ARGV[2];
+my $minimum_number_reads_matched_per_taxon = $ARGV[3];
 
 
 my $PRINT_NUMBER_SEQUENCES_MAPPED_TO_EACH_TAXONID = 0;
@@ -136,16 +140,23 @@ close LCA_MATCHES;
 
 
 # prints most frequently matched species, genus, or family taxon ids
+my $number_matched_taxon_ids_examined = 0;
 foreach my $matched_taxon_id(
 	sort {$taxon_id_to_number_matches{$b} <=> $taxon_id_to_number_matches{$a}}
 	keys %taxon_id_to_number_matches)
 {
-	print $matched_taxon_id;
-	if($PRINT_NUMBER_SEQUENCES_MAPPED_TO_EACH_TAXONID)
+	if(($number_matched_taxon_ids_examined < $number_most_frequent_matched_taxa or !$number_most_frequent_matched_taxa)
+		and $taxon_id_to_number_matches{$matched_taxon_id} >= $minimum_number_reads_matched_per_taxon)
 	{
-		print " (".$taxon_id_to_number_matches{$matched_taxon_id}.")";
+		print $matched_taxon_id;
+		if($PRINT_NUMBER_SEQUENCES_MAPPED_TO_EACH_TAXONID)
+		{
+			print " (".$taxon_id_to_number_matches{$matched_taxon_id}.")";
+		}
+		print $NEWLINE;
+		
+		$number_matched_taxon_ids_examined++;
 	}
-	print $NEWLINE;
 }
 
 
