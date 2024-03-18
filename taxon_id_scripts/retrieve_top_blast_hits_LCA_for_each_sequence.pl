@@ -49,7 +49,7 @@ my $print_matched_accession_numbers = $ARGV[3]; # if 1, prints all accession num
 my $is_diamond_output = $ARGV[4]; # if 1, treats input file with blast output as modified DIAMOND output; format: qseqid stitle (part 1: accession number) stitle (part 2: sequence name) taxonid qlen slen length pident qcovhsp evalue
 
 
-my $NO_DATA = qr/(NA|N\/A)/; # compiled (qr//) regex matching either 'NA' or 'N/A'
+my $NO_DATA = "NA";
 my $NEWLINE = "\n";
 my $DELIMITER = "\t";
 my $TAXONDUMP_DELIMITER = "\t[|]\t"; # nodes.dmp and names.dmp
@@ -206,7 +206,7 @@ while(<BLAST_OUTPUT>)
 		my %matched_taxon_ids_set = ();
 		foreach my $matched_taxon_id(@matched_taxon_ids)
 		{
-			if ($matched_taxon_id !~ $NO_DATA) {
+			if($matched_taxon_id ne $NO_DATA)
 			{
 				$matched_taxon_ids_set{$matched_taxon_id} = 1;
 			}
