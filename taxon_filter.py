@@ -400,6 +400,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfm
     """ run blastn on the input fasta file. this is intended to be run in parallel
         by blastn_chunked_fasta
     """
+    os.environ['BLASTDB']= '/opt/viral-ngs/viral-classify/blast'
     #Check if the function ran succesfully
     log.info("Running _run_blastn_chunk with input_fasta: %s, out_hits:%s", input_fasta, out_hits)
     try:

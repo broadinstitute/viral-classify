@@ -12,7 +12,6 @@ import util.misc
 TOOL_NAME = "blastn"
 #Setting up format for logging messages
 _log = logging.getLogger(__name__)
-_log = logging.getLogger(__name__)
 
 class BlastTools(tools.Tool):
     """'Abstract' base class for tools in the blast+ suite.
