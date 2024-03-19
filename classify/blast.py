@@ -61,18 +61,17 @@ class BlastnTool(BlastTools):
         #Display error message if BLAST failed
         if blast_pipe.returncode!= 0:
             _log.error('Error running blastn command: {}'.format(error))
-        
+            raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
         # strip tab output to just query read ID names and emit
         last_read_id = None
-        for line in blast_pipe.stdout:
-            line = line.decode('UTF-8').rstrip('\n\r')
+        for line in output.stdout('UTF-8').rstrip('\n\r'):
             read_id = line.split('\t')[0]
             # only emit if it is not a duplicate of the previous read ID
             if read_id != last_read_id:
                 last_read_id = read_id
                 yield read_id
         #Logging if blastn failed
-        if blast_pipe.poll() == 0:
+        if blast_pipe.returncode == 0:
             _log.info("Blastn process completed succesfully.")
         else:
             _log.error("Blastn process failed with exit code: %s", blast_pipe.returncode)
