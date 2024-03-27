@@ -56,14 +56,15 @@ my $LCA_taxon_rank_column = 2;
 my $LCA_taxon_species_column = 3;
 my $LCA_taxon_genus_column = 4;
 my $LCA_taxon_family_column = 5;
-my $evalue_of_top_hits_column = 6;
-my $lowest_pident_of_top_hits_column = 7;
-my $mean_pident_of_top_hits_column = 8;
-my $highest_pident_of_top_hits_column = 9;
-my $lowest_qcovs_of_top_hits_column = 10;
-my $mean_qcovs_of_top_hits_column = 11;
-my $highest_qcovs_of_top_hits_column = 12;
-my $number_top_hits_column = 13;
+my $LCA_taxon_superkingdom_column = 6;
+my $evalue_of_top_hits_column = 7;
+my $lowest_pident_of_top_hits_column = 8;
+my $mean_pident_of_top_hits_column = 9;
+my $highest_pident_of_top_hits_column = 10;
+my $lowest_qcovs_of_top_hits_column = 11;
+my $mean_qcovs_of_top_hits_column = 12;
+my $highest_qcovs_of_top_hits_column = 13;
+my $number_top_hits_column = 14;
 
 
 # reads in sequence names and lengths from fasta file
@@ -126,7 +127,14 @@ while(<LCA_MATCHES>)
 			# prints kraken format row for unclassified sequence
 			# "C"/"U": a one letter code indicating that the sequence was either classified
 			# or unclassified.
-			print "C".$DELIMITER;
+			if($assigned_taxon_id == 0)
+			{
+				print "U".$DELIMITER;
+			}
+			else
+			{
+				print "C".$DELIMITER;
+			}
 		
 			# The sequence ID, obtained from the FASTA/FASTQ header.
 			print $sequence_name.$DELIMITER;
