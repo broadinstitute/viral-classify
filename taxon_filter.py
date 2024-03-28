@@ -540,25 +540,19 @@ def parser_deplete_blastn_bam(parser=argparse.ArgumentParser()):
     util.cmd.attach_main(parser, main_deplete_blastn_bam)
     return parser
 
-def chunk_blast_hits(inBam, db, blast_hits_output, threads=None, chunkSize=1000000, task=None, outfmt=6, max_target_seqs=1):
+def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=1000000, task=None, outfmt=6, max_target_seqs=1):
 #def deplete_blastn_bam(inBam, db, blast_hits_output, threads, chunkSize=0):
     'Use blastn to remove reads that match at least one of the databases.'
-
-    blast_hits = mkstempfname('.blast_hits.txt')
-
-    with extract_build_or_use_database(db, blastn_build_db, 'nin', tmp_suffix="-blastn_db_unpack", db_prefix="blastn") as (db_prefix,tempDir):
-        if chunkSize:
-            ## chunk up input and perform blastn in several parallel threads
-            with util.file.tempfname('.fasta') as reads_fasta:
-                tools.samtools.SamtoolsTool().bam2fa(inBam, reads_fasta)
-                log.info("running blastn on %s against %s", inBam, db)
-                blastn_chunked_fasta(reads_fasta, db_prefix, blast_hits, chunkSize, threads,task=None, outfmt=6, max_target_seqs=1)
-
-        else:
-            ## pipe tools together and run blastn multithreaded
-            log.info("running blastn on %s against %s", inBam, db)
-            blastn_chunked_fasta(inBam, db_prefix, blast_hits_output, chunkSize, threads,task=None, outfmt=6, max_target_seqs=1)
-
+    if chunkSize:
+        log.info("Running BLASTN on %s against database %s", inFasta, db)
+        # Directly use the specified pre-made database for BLASTN search
+        blastn_chunked_fasta(inFasta, db, blast_hits_output, chunkSize, threads, task, outfmt, max_target_seqs)
+    else:
+        ## pipe tools together and run blastn multithreaded
+        with open(blast_hits_output, 'wt') as outf:
+            for read_id in classify.blast.BlastnTool().get_hits_fasta(inFasta, db, threads,task=None, outfmt=6, max_target_seqs=1):
+                outf.write(read_id + '\n')
+                
 def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument('inBam', help='Input BAM file.')
     parser.add_argument('db', help='BLASTN database.')
