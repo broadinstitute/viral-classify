@@ -439,7 +439,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
         util.file.make_empty(out_hits)
     # divide (max, single-thread) chunksize by thread count
     # to find the  absolute max chunk size per thread
-    chunk_max_size_per_thread = chunkSize // threads
+    chunk_max_size_per_thread = int(chunkSize) // threads
 
     # find the chunk size if evenly divided among blast threads
     reads_per_thread = number_of_reads // threads
@@ -552,7 +552,7 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=100
         with open(blast_hits_output, 'wt') as outf:
             for read_id in classify.blast.BlastnTool().get_hits_fasta(inFasta, db, threads,task=None, outfmt=6, max_target_seqs=1):
                 outf.write(read_id + '\n')
-                
+
 def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument('inBam', help='Input BAM file.')
     parser.add_argument('db', help='BLASTN database.')
