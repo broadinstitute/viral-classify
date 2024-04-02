@@ -38,9 +38,12 @@ class BlastnTool(BlastTools):
     """ Tool wrapper for blastn """
     subtool_name = 'blastn'
 
-    def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt=6, max_target_seqs=1):
+    def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt=6, max_target_seqs=1, output_type="read_id"):
         _log.debug("Executing get_hits_pipe function.")
-        # run blastn and emit list of read IDs
+        #Validates output_type, default 'read_id'
+        if output_type not in ['read_id', 'full_line']:
+            _log.warning(f"Invalid output_type '{output_type}' specified. Defaulting to 'read_id'.")
+            output_type = 'read_id'
         threads = util.misc.sanitize_thread_count(threads)
         cmd = [self.install_and_get_path(),
             '-db', db,
@@ -62,22 +65,29 @@ class BlastnTool(BlastTools):
         if blast_pipe.returncode!= 0:
             _log.error('Error running blastn command: {}'.format(error))
             raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
-        # strip tab output to just query read ID names and emit
-        last_read_id = None
-        for line in output.decode('UTF-8').splitlines():
-            line = line.strip()
-            read_id = line.split('\t')[0]
-            # only emit if it is not a duplicate of the previous read ID
-            if read_id != last_read_id:
-                last_read_id = read_id
-                yield read_id
+        #Needs to be hashed since get_hits_pipe is deisgned to yieldonly reads IDs and detail outputs are ommitted. 
+        
+        # Strip tab output to just query read ID names and emit
+        if output_type == 'read_id':
+            last_read_id = None
+            for line in output.decode('UTF-8').splitlines():
+                line = line.strip()
+                read_id = line.split('\t')[0]
+            #only emit if it is not a duplicate of the previous read ID
+                if read_id != last_read_id:
+                    last_read_id = read_id
+                    yield read_id
+        #Writes entire line of BLAST output
+        elif output_type == 'full_line':
+            for line in output.decode('UTF-8').splitlines():
+                yield line 
         #Logging if blastn failed
         if blast_pipe.returncode == 0:
             _log.info("Blastn process completed succesfully.")
         else:
             _log.error("Blastn process failed with exit code: %s", blast_pipe.returncode)
             raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
-
+       
     def get_hits_bam(self, inBam, db, threads=None, task=None, outfmt=6, max_target_seqs=1):
         return self.get_hits_pipe(
             tools.samtools.SamtoolsTool().bam2fa_pipe(inBam),
@@ -85,10 +95,10 @@ class BlastnTool(BlastTools):
             threads=threads,
             task=task)
 
-    def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt=6, max_target_seqs=1):
+    def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt=6, max_target_seqs=1, output_type='read_id'):
         _log.debug("Executing get_hits_fasta function.")
         with open(inFasta, 'rt') as inf:
-            for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt=6, max_target_seqs=1):
+            for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt=6, max_target_seqs=1, output_type=output_type):
                 yield hit
 
 class MakeblastdbTool(BlastTools):
