@@ -560,7 +560,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
     parser.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size (default: %(default)s)')
     parser.add_argument("-task", help="details the type of search (i.e. megablast,blatn,etc)")
-    parser.add_argument("-outfmt", type=int, default=6, help="Custom output formats(default: %(default)s)")
+    parser.add_argument("-outfmt", type=str, default=6, help="Custom output formats(default: %(default)s)")
     parser.add_argument("max_target_seqs", type=int, default=1, help="BLAST will return the first (if set to default) database hits for a sequence query. (default: %(default)s)")
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, chunk_blast_hits)
