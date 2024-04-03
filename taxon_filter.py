@@ -409,6 +409,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfm
     """ run blastn on the input fasta file. this is intended to be run in parallel
         by blastn_chunked_fasta
     """
+    log.debug(f"outfmt value: {outfmt}")
     os.environ['BLASTDB']= 'viral-classify/blast'
     #Check if the function ran succesfully
     log.info("Running _run_blastn_chunk with input_fasta: %s, out_hits:%s", input_fasta, out_hits)
@@ -473,7 +474,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
     log.debug("blastn chunk size %s" % chunkSize)
     log.debug("number of chunks to create %s" % (number_of_reads / chunkSize))
     log.debug("blastn parallel instances %s" % threads)
-
+    log.debug(f"outfmt value: {outfmt}")
     # chunk the input file. This is a sequential operation
     input_fastas = []
     with open(fasta, "rt") as fastaFile:
