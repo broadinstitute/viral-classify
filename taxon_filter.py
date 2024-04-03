@@ -37,8 +37,17 @@ import classify.last
 import classify.bmtagger
 import read_utils
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("chunk_blast_processing.log"),  # Log file name
+        logging.StreamHandler()  # Keeps the console output if desired
+    ]
+)
+
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+
 # =======================
 # ***  deplete  ***
 # =======================

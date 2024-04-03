@@ -11,6 +11,14 @@ import util.misc
 
 TOOL_NAME = "blastn"
 #Setting up format for logging messages
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("blast_py.log"),  # Logging get_hits_pipe and get_hits_fasta to identify time run 
+        logging.StreamHandler() 
+    ]
+)
 _log = logging.getLogger(__name__)
 
 class BlastTools(tools.Tool):
