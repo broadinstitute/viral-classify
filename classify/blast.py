@@ -59,7 +59,7 @@ class BlastnTool(BlastTools):
             '-word_size', 16,
             '-num_threads', threads,
             '-evalue', '1e-6',
-            '-outfmt', str(outfmt),
+            '-outfmt', outfmt if isinstance(outfmt, str) else str(outfmt),
             '-max_target_seqs', str(max_target_seqs),
             '-task', str(task) if task else 'blastn', 
         ]
