@@ -405,7 +405,7 @@ def multi_db_deplete_bam(inBam, refDbs, deplete_method, outBam, **kwargs):
 # ========================
 
 
-def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfmt=6, max_target_seqs=1, output_type='read_id'):
+def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfmt='6', max_target_seqs=1, output_type='read_id'):
     """ run blastn on the input fasta file. this is intended to be run in parallel
         by blastn_chunked_fasta
     """
@@ -421,7 +421,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfm
     except Exception as e:
         log.error("An error occurred in _run_blastn_chunk.:%s", e)
 
-def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, task=None, outfmt=6, max_target_seqs=1, output_type='read_id'):
+def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type='read_id'):
     """
     Helper function: blastn a fasta file, overcoming apparent memory leaks on
     an input with many query sequences, by splitting it into multiple chunks
@@ -526,7 +526,7 @@ def deplete_blastn_bam(inBam, db, outBam, threads=None, chunkSize=1000000, JVMme
         else:
             ## pipe tools together and run blastn multithreaded
             with open(blast_hits, 'wt') as outf:
-                for read_id in classify.blast.BlastnTool().get_hits_bam(inBam, db_prefix, threads,task=None, outfmt=6, max_target_seqs=1):
+                for read_id in classify.blast.BlastnTool().get_hits_bam(inBam, db_prefix, threads,task=None, outfmt='6', max_target_seqs=1):
                     outf.write(read_id + '\n')
 
 
@@ -550,7 +550,7 @@ def parser_deplete_blastn_bam(parser=argparse.ArgumentParser()):
     util.cmd.attach_main(parser, main_deplete_blastn_bam)
     return parser
 
-def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=1000000, task=None, outfmt=6, max_target_seqs=1, output_type= 'read_id'):
+def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=1000000, task=None, outfmt='6', max_target_seqs=1, output_type= 'read_id'):
 #def deplete_blastn_bam(inBam, db, blast_hits_output, threads, chunkSize=0):
     'Use blastn to remove reads that match at least one of the databases.'
     if chunkSize:
@@ -560,7 +560,7 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=100
     else:
         ## pipe tools together and run blastn multithreaded
         with open(blast_hits_output, 'wt') as outf:
-            for output in classify.blast.BlastnTool().get_hits_fasta(inFasta, db, threads,task=None, outfmt=6, max_target_seqs=1, output_type=output_type):
+            for output in classify.blast.BlastnTool().get_hits_fasta(inFasta, db, threads,task=None, outfmt='6', max_target_seqs=1, output_type=output_type):
                 if output_type == 'read_id':
                     # Extract the first clmn in the output (assuming its the read ID)
                     read_id = output.split('\t')[0]
