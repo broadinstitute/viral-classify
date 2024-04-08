@@ -481,10 +481,10 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
         record_iter = SeqIO.parse(fastaFile, "fasta")
         for batch in util.misc.batch_iterator(record_iter, chunkSize):
             chunk_fasta = mkstempfname('.fasta')
-
             with open(chunk_fasta, "wt") as handle:
-                SeqIO.write(batch, handle, "fasta")
+               count= SeqIO.write(batch, handle, "fasta")
             batch = None
+            log.info(f"Created chunk {chunk_fasta} with {count} records")
             input_fastas.append(chunk_fasta)
 
     num_chunks = len(input_fastas)

@@ -59,7 +59,7 @@ class BlastnTool(BlastTools):
             '-word_size', 16,
             '-num_threads', threads,
             '-evalue', '1e-6',
-            '-outfmt', '6 qseqid sacc stitle staxids sscinames sskingdoms qlen slen length pident qcovs evalue',
+            '-outfmt', str(outfmt),
             '-max_target_seqs', str(max_target_seqs),
             '-task', str(task) if task else 'blastn', 
         ]
@@ -97,18 +97,18 @@ class BlastnTool(BlastTools):
             _log.error("Blastn process failed with exit code: %s", blast_pipe.returncode)
             raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
        
-    def get_hits_bam(self, inBam, db, threads=None, task=None, outfmt=6, max_target_seqs=1):
+    def get_hits_bam(self, inBam, db, threads=None, task=None, outfmt='6', max_target_seqs=1):
         return self.get_hits_pipe(
             tools.samtools.SamtoolsTool().bam2fa_pipe(inBam),
             db,
             threads=threads,
             task=task)
 
-    def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt=6, max_target_seqs=1, output_type='read_id'):
+    def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type='read_id'):
         _log.debug("Executing get_hits_fasta function.")
         _log.debug(f"get_hits_fasta called with outfmt: {outfmt}")
         with open(inFasta, 'rt') as inf:
-            for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt=6, max_target_seqs=1, output_type=output_type):
+            for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt='6', max_target_seqs=1, output_type=output_type):
                 yield hit
 
 class MakeblastdbTool(BlastTools):
