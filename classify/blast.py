@@ -15,7 +15,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("blast_py.log"),  # Logging get_hits_pipe and get_hits_fasta to identify time run 
+        logging.FileHandler("blast_py.log"),  
         logging.StreamHandler() 
     ]
 )
@@ -46,7 +46,7 @@ class BlastnTool(BlastTools):
     """ Tool wrapper for blastn """
     subtool_name = 'blastn'
 
-    def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt=None, max_target_seqs=1, output_type="read_id"):
+    def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type="read_id"):
         _log.debug("Executing get_hits_pipe function.")
         _log.debug(f"get_hits_pipe called with outfmt: {outfmt}")
         #Validates output_type, default 'read_id'
@@ -74,7 +74,6 @@ class BlastnTool(BlastTools):
         if blast_pipe.returncode!= 0:
             _log.error('Error running blastn command: {}'.format(error))
             raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
-        #Needs to be hashed since get_hits_pipe is deisgned to yieldonly reads IDs and detail outputs are ommitted. 
         
         # Strip tab output to just query read ID names and emit
         if output_type == 'read_id':
