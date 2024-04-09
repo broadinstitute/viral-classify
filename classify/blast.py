@@ -46,7 +46,7 @@ class BlastnTool(BlastTools):
     """ Tool wrapper for blastn """
     subtool_name = 'blastn'
 
-    def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt='6 qseqid sacc stitle staxids sscinames sskingdoms qlen slen length pident qcovs evalue', max_target_seqs=1, output_type="read_id"):
+    def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type="read_id"):
         _log.debug("Executing get_hits_pipe function.")
         _log.debug(f"get_hits_pipe called with outfmt: {outfmt}")
         #Validates output_type, default 'read_id'

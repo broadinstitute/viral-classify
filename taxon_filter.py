@@ -508,6 +508,38 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
         os.unlink(input_fastas[i])
         os.unlink(hits_files[i])
 
+def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=1000000, task=None, outfmt='6', max_target_seqs=1, output_type= 'read_id'):
+#def deplete_blastn_bam(inBam, db, blast_hits_output, threads, chunkSize=0):
+    'Use blastn to remove reads that match at least one of the databases.'
+    if chunkSize:
+        log.info("Running BLASTN on %s against database %s", inFasta, db)
+        # Directly use the specified pre-made database for BLASTN search
+        blastn_chunked_fasta(inFasta, db, blast_hits_output, chunkSize, threads, task, outfmt, max_target_seqs, output_type=output_type)
+    else:
+        ## pipe tools together and run blastn multithreaded
+        with open(blast_hits_output, 'wt') as outf:
+            for output in classify.blast.BlastnTool().get_hits_fasta(inFasta, db, threads,task=None, outfmt='6', max_target_seqs=1, output_type=output_type):
+                if output_type == 'read_id':
+                    # Extract the first clmn in the output (assuming its the read ID)
+                    read_id = output.split('\t')[0]
+                    outf.write(read_id + '\n')
+                else:
+                    #Extract and write full line if the output_type is not set to just read IDs
+                    outf.write(output + '\n')
+
+def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
+    parser = argparse.ArgumentParser(description="Run BLASTN on chunks of a FASTA file.")
+    parser.add_argument('inBam', help='Input BAM file.')
+    parser.add_argument('db', help='BLASTN database.')
+    parser.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
+    parser.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size (default: %(default)s)')
+    parser.add_argument("-task", help="details the type of search (i.e. megablast,blatn,etc)")
+    parser.add_argument("-outfmt", type=str, default=6, help="Custom output formats(default: %(default)s)")
+    parser.add_argument("-max_target_seqs", type=int, default=1, help="BLAST will return the first (if set to default) database hits for a sequence query. (default: %(default)s)")
+    parser.add_argument("--output_type", default= "read_id", choices=["read_id", "full_line"], help="Specify the type of output: 'read_id' for read IDs only, or 'full_line' for full BLAST output lines. Default is 'read_id'. Useful when adding taxonomy IDs to outfmt type 6.")
+    util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
+    util.cmd.attach_main(parser, chunk_blast_hits)
+    return parser
 
 def deplete_blastn_bam(inBam, db, outBam, threads=None, chunkSize=1000000, JVMmemory=None):
 #def deplete_blastn_bam(inBam, db, outBam, threads, chunkSize=0, JVMmemory=None):
@@ -550,38 +582,6 @@ def parser_deplete_blastn_bam(parser=argparse.ArgumentParser()):
     util.cmd.attach_main(parser, main_deplete_blastn_bam)
     return parser
 
-def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=1000000, task=None, outfmt='6', max_target_seqs=1, output_type= 'read_id'):
-#def deplete_blastn_bam(inBam, db, blast_hits_output, threads, chunkSize=0):
-    'Use blastn to remove reads that match at least one of the databases.'
-    if chunkSize:
-        log.info("Running BLASTN on %s against database %s", inFasta, db)
-        # Directly use the specified pre-made database for BLASTN search
-        blastn_chunked_fasta(inFasta, db, blast_hits_output, chunkSize, threads, task, outfmt, max_target_seqs, output_type=output_type)
-    else:
-        ## pipe tools together and run blastn multithreaded
-        with open(blast_hits_output, 'wt') as outf:
-            for output in classify.blast.BlastnTool().get_hits_fasta(inFasta, db, threads,task=None, outfmt='6', max_target_seqs=1, output_type=output_type):
-                if output_type == 'read_id':
-                    # Extract the first clmn in the output (assuming its the read ID)
-                    read_id = output.split('\t')[0]
-                    outf.write(read_id + '\n')
-                else:
-                    #Extract and write full line if the output_type is not set to just read IDs
-                    outf.write(output + '\n')
-
-def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
-    parser = argparse.ArgumentParser(description="Run BLASTN on chunks of a FASTA file.")
-    parser.add_argument('inBam', help='Input BAM file.')
-    parser.add_argument('db', help='BLASTN database.')
-    parser.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
-    parser.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size (default: %(default)s)')
-    parser.add_argument("-task", help="details the type of search (i.e. megablast,blatn,etc)")
-    parser.add_argument("-outfmt", type=str, default=6, help="Custom output formats(default: %(default)s)")
-    parser.add_argument("-max_target_seqs", type=int, default=1, help="BLAST will return the first (if set to default) database hits for a sequence query. (default: %(default)s)")
-    parser.add_argument("--output_type", default= "read_id", choices=["read_id", "full_line"], help="Specify the type of output: 'read_id' for read IDs only, or 'full_line' for full BLAST output lines. Default is 'read_id'. Useful when adding taxonomy IDs to outfmt type 6.")
-    util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
-    util.cmd.attach_main(parser, chunk_blast_hits)
-    return parser
 
 def main_deplete_blastn_bam(args):
     '''Use blastn to remove reads that match at least one of the specified databases.'''
