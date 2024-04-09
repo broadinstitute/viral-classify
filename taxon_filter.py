@@ -41,7 +41,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("chunk_blast_processing.log"),  # Log file name
+        logging.FileHandler("task.log"),  # Log file name
         logging.StreamHandler()  # Keeps the console output if desired
     ]
 )
