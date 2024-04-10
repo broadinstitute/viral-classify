@@ -18,6 +18,7 @@ import tempfile
 import shutil
 import concurrent.futures
 import contextlib
+import cProfile
 
 from Bio import SeqIO
 import pysam
@@ -484,7 +485,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
             with open(chunk_fasta, "wt") as handle:
                count= SeqIO.write(batch, handle, "fasta")
             batch = None
-            log.info(f"Created chunk {chunk_fasta} with {count} records")
+            log.info(f"Created chunk {chunk_fasta} with {count} reads.")
             input_fastas.append(chunk_fasta)
 
     num_chunks = len(input_fastas)
@@ -509,8 +510,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
         os.unlink(hits_files[i])
 
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=1000000, task=None, outfmt='6', max_target_seqs=1, output_type= 'read_id'):
-#def deplete_blastn_bam(inBam, db, blast_hits_output, threads, chunkSize=0):
-    'Use blastn to remove reads that match at least one of the databases.'
+    'Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'
     if chunkSize:
         log.info("Running BLASTN on %s against database %s", inFasta, db)
         # Directly use the specified pre-made database for BLASTN search
