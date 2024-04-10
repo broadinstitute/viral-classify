@@ -107,7 +107,7 @@ class BlastnTool(BlastTools):
             db,
             threads=threads)
 
-    def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt=outfmt, max_target_seqs=1, output_type='read_id'):
+    def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type='read_id'):
         _log.debug(f"Executing get_hits_fasta function. Called with outfmt: {outfmt}")
         with open(inFasta, 'rt') as inf:
             for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type):
