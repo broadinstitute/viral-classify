@@ -19,7 +19,7 @@ import shutil
 import concurrent.futures
 import contextlib
 import cProfile
-
+import time
 from Bio import SeqIO
 import pysam
 
@@ -38,14 +38,19 @@ import classify.last
 import classify.bmtagger
 import read_utils
 
+from logging_config import setup_logging
+setup_logging()
+
+'''
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("task.log"),  # Log file name
         logging.StreamHandler()  # Keeps the console output if desired
     ]
 )
+'''
 
 log = logging.getLogger(__name__)
 
@@ -410,10 +415,9 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfm
     """ run blastn on the input fasta file. this is intended to be run in parallel
         by blastn_chunked_fasta
     """
-    log.debug(f"outfmt value: {outfmt}")
-    os.environ['BLASTDB']= 'viral-classify/blast'
-    #Check if the function ran succesfully
-    log.info("Running _run_blastn_chunk with input_fasta: %s, out_hits:%s", input_fasta, out_hits)
+    #Might need to remove this path, not absolute
+    #os.environ['BLASTDB']= 'viral-classify/blast'
+    start_time = time.time()
     try:
         with util.file.open_or_gzopen(out_hits, 'wt') as outf:
             for line in classify.blast.BlastnTool().get_hits_fasta(input_fasta, db, threads=blast_threads, task=task, outfmt=outfmt, output_type=output_type):
@@ -421,6 +425,9 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, task=None, outfm
         log.info("_run_blastn_chunk completed succesfully.")
     except Exception as e:
         log.error("An error occurred in _run_blastn_chunk.:%s", e)
+        raise e
+    elapsed_time = time.time() - start_time
+    log.info(f"_run_blastn_chunk executed in {elapsed_time:.2f} seconds")
 
 def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type='read_id'):
     """
@@ -429,6 +436,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
     and running a new blastn process on each chunk. Return a list of output
     filenames containing hits
     """
+    start_time = time.time()
     # the lower bound of how small a fasta chunk can be.
     # too small and the overhead of spawning a new blast process
     # will be detrimental relative to actual computation time
@@ -450,7 +458,6 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
         util.file.make_empty(out_hits)
     # divide (max, single-thread) chunksize by thread count
     # to find the  absolute max chunk size per thread
-    print(chunkSize)
     chunk_max_size_per_thread = int(chunkSize) // threads
 
     # find the chunk size if evenly divided among blast threads
@@ -508,6 +515,8 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
     for i in range(num_chunks):
         os.unlink(input_fastas[i])
         os.unlink(hits_files[i])
+    elapsed_time = time.time() - start_time
+    log.info(f"blastn_chunked_fasta executed in {elapsed_time:.2f} seconds")
 
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=1000000, task=None, outfmt='6', max_target_seqs=1, output_type= 'read_id'):
     'Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'

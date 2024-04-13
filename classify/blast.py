@@ -9,8 +9,12 @@ import cProfile
 import tools
 import tools.samtools
 import util.misc
-
+import time
 TOOL_NAME = "blastn"
+
+from logging_config import setup_logging
+setup_logging()
+'''
 #Setting up format for logging messages
 logging.basicConfig(
     level=logging.DEBUG,
@@ -20,6 +24,8 @@ logging.basicConfig(
         logging.StreamHandler() 
     ]
 )
+'''
+#Using _log for correct logger usage
 _log = logging.getLogger(__name__)
 
 class BlastTools(tools.Tool):
@@ -48,6 +54,7 @@ class BlastnTool(BlastTools):
     subtool_name = 'blastn'
 
     def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type="read_id"):
+        start_time = time.time()
         _log.debug(f"Executing get_hits_pipe function. Called with outfmt: {outfmt}")
         #toggle between extracting read IDs only or full blast output (all lines)
         if output_type not in ['read_id', 'full_line']:
@@ -100,7 +107,9 @@ class BlastnTool(BlastTools):
         else:
             _log.error("Blastn process failed with exit code: %s", blast_pipe.returncode)
             raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
-       
+        
+        elapsed_time = time.time() - start.time()
+        _log.info(f"get_hits_pipe executed in {elapsed_time:.2f} seconds")
     def get_hits_bam(self, inBam, db, threads=None):
         return self.get_hits_pipe(
             tools.samtools.SamtoolsTool().bam2fa_pipe(inBam),
@@ -108,10 +117,13 @@ class BlastnTool(BlastTools):
             threads=threads)
 
     def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type='read_id'):
+        start_time = time.time ()
         _log.debug(f"Executing get_hits_fasta function. Called with outfmt: {outfmt}")
         with open(inFasta, 'rt') as inf:
             for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type):
                 yield hit
+        elapsed_time = time.time() - start_time
+        _log.info(f"get_hits_fasta exectued in {elapsed_time:.2f} seconds")
 
 class MakeblastdbTool(BlastTools):
     """ Tool wrapper for makeblastdb """
