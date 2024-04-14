@@ -108,7 +108,7 @@ class BlastnTool(BlastTools):
             _log.error("Blastn process failed with exit code: %s", blast_pipe.returncode)
             raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
         
-        elapsed_time = time.time() - start.time()
+        elapsed_time = time.time() - start_time()
         _log.info(f"get_hits_pipe executed in {elapsed_time:.2f} seconds")
     def get_hits_bam(self, inBam, db, threads=None):
         return self.get_hits_pipe(
