@@ -122,7 +122,7 @@ class BlastnTool(BlastTools):
         with open(inFasta, 'rt') as inf:
             for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type):
                 yield hit
-        elapsed_time = time.time() - start_time
+        elapsed_time = time.time() - start_time()
         _log.info(f"get_hits_fasta exectued in {elapsed_time:.2f} seconds")
 
 class MakeblastdbTool(BlastTools):
