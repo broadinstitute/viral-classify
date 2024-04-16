@@ -53,27 +53,10 @@ class BlastnTool(BlastTools):
     """ Tool wrapper for blastn """
     subtool_name = 'blastn'
 
-    def run_blast_command(self, cmd, inPipe):
-        """Run the BLAST command and handle subprocess errors."""
-        try:
-            with subprocess.Popen(
-                    cmd, stdin=inPipe, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                ) as blast_pipe:
-                output, error = blast_pipe.communicate()
-                if blast_pipe.returncode != 0:
-                    _log.error(f'Error running blastn command: {error.decode()}')
-                    raise subprocess.CalledProcessError(blast_pipe.returncode, cmd, output=output, stderr=error)
-                return output
-        except subprocess.CalledProcessError as e:
-            _log.error(f"Blastn process failed with exit code: {e.returncode}, cmd: {' '.join(e.cmd)}")
-            raise  
-        except Exception as e:
-            _log.error(f"An unexpected error occurred while running blastn: {str(e)}")
-            raise 
-
     def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type="read_id"):
         start_time = time.time()
         _log.debug(f"Executing get_hits_pipe function. Called with outfmt: {outfmt}")
+        
         #toggle between extracting read IDs only or full blast output (all lines)
         if output_type not in ['read_id', 'full_line']:
             _log.warning(f"Invalid output_type '{output_type}' specified. Defaulting to 'read_id'.")
@@ -92,30 +75,34 @@ class BlastnTool(BlastTools):
         cmd = [str(x) for x in cmd]
         #Log BLAST command executed
         _log.debug('Running blastn command: {}'.format(' '.join(cmd)))
-        _log.debug('| ' + ' '.join(cmd) + ' |')
+        
+        #try/finally block added to ensure resources packages are cleaned up regardless of error raised
+        try:
+            with subprocess.Popen(cmd, stdin=inPipe, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as blast_pipe:
+                output, error = blast_pipe.communicate()
+                
+                if blast_pipe.returncode != 0:
+                    _log.error(f'Error running blastn command: {error.decode()}')
+                    raise subprocess.CalledProcessError(blast_pipe.returncode, cmd, output=output, stderr=error)
 
-        # Execute the command and handle subprocess errors
-        output = self.run_blast_command(cmd, inPipe)
-    
-        # If read_id is defined, strip tab output to just query read ID names and emit (default)
-        last_read_id = None
-        for line in output.decode('UTF-8').splitlines():
-            if output_type == 'read_id':
-                #Split line by tab, and take the first element
-                read_id = line.split('\t')[0]
-                # Only emit if it is not a duplicate of the previous read ID
-                if read_id != last_read_id:
-                    last_read_id = read_id
-                    yield read_id
-                #Yield the full line without stripping whitespace
-            elif output_type == 'full_line':
-                yield line
-
-        # Log successful completion
-        _log.info("Blastn process completed successfully.")
-
-        #Log time taken
+                # Process the output line by line in a generator fashion
+                last_read_id = None
+                for line in output.decode('UTF-8').splitlines():
+                    if output_type == 'read_id':
+                        read_id = line.split('\t')[0]
+                        if read_id != last_read_id:
+                            last_read_id = read_id
+                            yield read_id
+                    elif output_type == 'full_line':
+                        yield line
+        
+        finally:
+            # Ensure resources are cleaned up
+            _log.info("Cleaning up subprocess resources.")
+        
+        # Log successful completion and time taken
         elapsed_time = time.time() - start_time
+        _log.info("Blastn process completed successfully.")
         _log.info(f"get_hits_pipe executed in {elapsed_time:.2f} seconds")
 
     def get_hits_bam(self, inBam, db, threads=None):
