@@ -14,6 +14,7 @@ TOOL_NAME = "blastn"
 
 from logging_config import setup_logging
 setup_logging()
+
 '''
 #Setting up format for logging messages
 logging.basicConfig(
