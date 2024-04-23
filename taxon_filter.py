@@ -37,7 +37,10 @@ import classify.blast
 import classify.last
 import classify.bmtagger
 import read_utils
-
+#test to locate logging_config.py
+import sys
+sys.path.append('/opt/viral-ngs/viral-classify')
+import logging_config
 from logging_config import setup_logging
 setup_logging()
 
