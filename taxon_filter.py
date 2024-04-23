@@ -535,7 +535,6 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=100
                 else:
                     #Extract and write full line if the output_type is not set to just read IDs
                     outf.write(output + '\n')
-__commands__.append(('chunk_blast_hits', parser_chunk_blast_hits))
 
 def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser = argparse.ArgumentParser(description="Run BLASTN on chunks of a FASTA file.")
@@ -550,7 +549,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, chunk_blast_hits)
     return parser
-
+__commands__.append(('chunk_blast_hits', parser_chunk_blast_hits))
 def deplete_blastn_bam(inBam, db, outBam, threads=None, chunkSize=1000000, JVMmemory=None):
 #def deplete_blastn_bam(inBam, db, outBam, threads, chunkSize=0, JVMmemory=None):
     'Use blastn to remove reads that match at least one of the databases.'
