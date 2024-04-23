@@ -535,10 +535,11 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=100
                 else:
                     #Extract and write full line if the output_type is not set to just read IDs
                     outf.write(output + '\n')
+__commands__.append(('chunk_blast_hits', parser_chunk_blast_hits))
 
 def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser = argparse.ArgumentParser(description="Run BLASTN on chunks of a FASTA file.")
-    parser.add_argument('inBam', help='Input BAM file.')
+    parser.add_argument('inFasta', help='Input FASTA file.')
     parser.add_argument('db', help='BLASTN database.')
     parser.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
     parser.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size (default: %(default)s)')
