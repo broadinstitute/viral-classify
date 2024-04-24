@@ -525,7 +525,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
         cpus_leftover = threads - num_chunks
         blast_threads = 2*max(1, int(cpus_leftover / num_chunks))
         for i in range(num_chunks):
-            executor.submit(_run_blastn_chunk, db, input_fastas[i], hits_files[i], blast_threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type)
+            executor.submit(_run_blastn_chunk, db=db, input_fasta=input_fastas[i], out_hits=hits_files[i], blast_threads=blast_threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type)
 
     # merge results and clean up
     util.file.cat(out_hits, hits_files)
@@ -563,18 +563,13 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser_chunk.add_argument('db', help='BLASTN database.')
     parser_chunk.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
     parser_chunk.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size')
-    parser_chunk.add_argument("-task", help="details the type of search (i.e., megablast, blastn, etc.)")
-    parser_chunk.add_argument("-outfmt", help="Custom output formats")
+    parser_chunk.add_argument("-task", type=str, help="details the type of search (i.e., megablast, blastn, etc.)")
+    parser_chunk.add_argument("-outfmt", type=str, help="Custom output formats")
     parser_chunk.add_argument("-max_target_seqs", type=int, default=1, help="Max target sequences to return.")
     parser_chunk.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type.")
-    args = parser.parse_args()
-
-    if args.subcommand == 'chunk_blast_hits':
-        print("Running chunk_blast_hits...")
-    else:
-        parser.print_help()
 
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
+    parser_chunk.set_defaults(func=chunk_blast_hits)
     util.cmd.attach_main(parser, chunk_blast_hits)
     return parser
 __commands__.append(('chunk_blast_hits', parser_chunk_blast_hits))
