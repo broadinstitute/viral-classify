@@ -554,19 +554,26 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=100
                     outf.write(output + '\n')
 
 def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
-    parser = argparse.ArgumentParser(description="Run BLASTN on chunks of a FASTA file.")
-    subparsers = parser.add_subparsers(dest="subcommand", required=True)
-    
+    parser = argparse.ArgumentParser(description="This script contains a number of utilities for filtering NGS reads.")
+    subparsers = parser.add_subparsers(dest="subcommand", help='Sub-command help')
+
+    # Adding a subparser for the 'chunk_blast_hits' command
     parser_chunk = subparsers.add_parser("chunk_blast_hits", help="Run BLASTN on chunks of a FASTA file.")
     parser_chunk.add_argument('inFasta', help='Input FASTA file.')
     parser_chunk.add_argument('db', help='BLASTN database.')
     parser_chunk.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
-    parser_chunk.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size (default: %(default)s)')
-    parser_chunk.add_argument("-task", help="details the type of search (i.e. megablast,blatn,etc)")
-    parser_chunk.add_argument("-outfmt", type=str, default="6", help="Custom output formats (default: %(default)s)")
-    parser_chunk.add_argument("-max_target_seqs", type=int, default=1, help="BLAST will return the first (if set to default) database hits for a sequence query. (default: %(default)s)")
-    parser_chunk.add_argument("--output_type", default="read_id", choices=["read_id", "full_line"], help="Specify the type of output: 'read_id' for read IDs only, or 'full_line' for full BLAST output lines. Default is 'read_id'. Useful when adding taxonomy IDs to outfmt type 6.")
-    parser_chunk.set_defaults(func=chunk_blast_hits)
+    parser_chunk.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size (default: 1000000)')
+    parser_chunk.add_argument("-task", help="details the type of search (i.e. megablast, blastn, etc)")
+    parser_chunk.add_argument("-outfmt", type=str, default="6", help="Custom output formats (default: '6')")
+    parser_chunk.add_argument("-max_target_seqs", type=int, default=1, help="BLAST will return the first (if set to default) database hits for a sequence query. (default: 1)")
+    parser_chunk.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the type of output: 'read_id' for read IDs only, or 'full_line' for full BLAST output lines. Default is 'read_id'. Useful when adding taxonomy IDs to outfmt type 6.")
+    args = parser.parse_args()
+
+    if args.subcommand == 'chunk_blast_hits':
+        print("Running chunk_blast_hits...")
+    else:
+        parser.print_help()
+
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, chunk_blast_hits)
     return parser
