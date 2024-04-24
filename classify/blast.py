@@ -11,23 +11,38 @@ import tools.samtools
 import util.misc
 import time
 TOOL_NAME = "blastn"
+'''
 import sys
 sys.path.append('/opt/viral-ngs/viral-classify')
 from logging_config import setup_logging
 setup_logging()
 
 '''
-#Setting up format for logging messages
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("blast_py.log"),  
-        logging.StreamHandler() 
-    ]
-)
-'''
-#Using _log for correct logger usage
+#Setting up try block to prevent unhandled exception error
+#Build the path to the logs directory in the home directory
+try:
+    log_directory = os.getenv('LOG_DIR', os.path.join(os.path.expanduser('~'), 'logs'))
+
+    # Ensure the directory exists, if not, create it
+    if not os.path.exists(log_directory):
+        os.makedirs(log_directory)
+
+    #Set up logging directory path
+    log_file_path = os.path.join(log_directory, 'blast_py.log')
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file_path), 
+            logging.StreamHandler() 
+        ]
+    )
+except Exception as e:
+    print ("Failed to set up logging:", str(e))
+    raise e
+
+
 _log = logging.getLogger(__name__)
 
 class BlastTools(tools.Tool):

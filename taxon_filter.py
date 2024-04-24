@@ -38,21 +38,36 @@ import classify.last
 import classify.bmtagger
 import read_utils
 #test to locate logging_config.py
+'''
 import sys
 sys.path.append('/opt/viral-ngs/viral-classify')
 from logging_config import setup_logging
 setup_logging()
 
 '''
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("task.log"),  # Log file name
-        logging.StreamHandler()  # Keeps the console output if desired
-    ]
-)
-'''
+#Setting up try block to prevent unhandled exception error
+#Build the path to the logs directory in the home directory
+try:
+    log_directory = os.getenv('LOG_DIR', os.path.join(os.path.expanduser('~'), 'logs'))
+
+    # Ensure the directory exists, if not, create it
+    if not os.path.exists(log_directory):
+        os.makedirs(log_directory)
+
+    #Set up logging directory path
+    log_file_path = os.path.join(log_directory, 'taxon_filter.log')
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file_path),  
+            logging.StreamHandler() 
+        ]
+    )
+except Exception as e: 
+    print ("Failed to set up logging:", str(e))
+    raise
 
 log = logging.getLogger(__name__)
 
@@ -552,6 +567,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     util.cmd.attach_main(parser, chunk_blast_hits)
     return parser
 __commands__.append(('chunk_blast_hits', parser_chunk_blast_hits))
+
 def deplete_blastn_bam(inBam, db, outBam, threads=None, chunkSize=1000000, JVMmemory=None):
 #def deplete_blastn_bam(inBam, db, outBam, threads, chunkSize=0, JVMmemory=None):
     'Use blastn to remove reads that match at least one of the databases.'
