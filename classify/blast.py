@@ -11,7 +11,8 @@ import tools.samtools
 import util.misc
 import time
 TOOL_NAME = "blastn"
-
+import sys
+sys.path.append('/opt/viral-ngs/viral-classify')
 from logging_config import setup_logging
 setup_logging()
 

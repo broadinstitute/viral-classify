@@ -3,7 +3,7 @@ FROM quay.io/broadinstitute/viral-core:2.2.4
 LABEL maintainer "viral-ngs@broadinstitute.org"
 
 ENV VIRAL_CLASSIFY_PATH=$INSTALL_PATH/viral-classify \
-	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin"
+	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin" \
 	PYTHONPATH="$VIRAL_CLASSIFY_PATH:$PYTHONPATH"
 
 COPY requirements-conda.txt requirements-conda-env2.txt $VIRAL_CLASSIFY_PATH/
