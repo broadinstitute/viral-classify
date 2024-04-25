@@ -554,20 +554,19 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=100
                     outf.write(output + '\n')
 
 def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
-    parser = argparse.ArgumentParser(description="Process BLAST hits")
-    subparsers = parser.add_subparsers(dest="command", required=True, help='Sub-command help')
-
+    parser = argparse.ArgumentParser(description="Process BLAST hits by dividing a FASTA file into smaller chunks for parallel processing.")
+    
     # Creating a subparser for the 'chunk_blast_hits' command
-    parser_chunk = subparsers.add_parser('chunk_blast_hits', help='Run BLASTN on chunks of a FASTA file.')
-    parser_chunk.add_argument('inFasta', help='Input FASTA file.')
-    parser_chunk.add_argument('db', help='BLASTN database.')
-    parser_chunk.add_argument('blast_hits_output', help='Stores hits found by BLASTN.')
-    parser_chunk.add_argument("--chunkSize", type=int, default=1000000, help='FASTA chunk size')
-    parser_chunk.add_argument("-task", type=str, help="details the type of search (i.e., megablast, blastn, etc.)")
-    parser_chunk.add_argument("-outfmt", type=str, help="Custom output formats")
-    parser_chunk.add_argument("-max_target_seqs", type=int, default=1, help="Max target sequences to return.")
-    parser_chunk.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type.")
-    parser_chunk.set_defaults(func=main_chunk_blast_hits)
+    parser = argparse.ArgumentParser(description="Process BLAST hits by dividing a FASTA file into smaller chunks for parallel processing.")
+    parser.add_argument('inFasta', help='Input FASTA file.')
+    parser.add_argument('db', help='BLASTN database.')
+    parser.add_argument('blast_hits_output', help='Output file to store hits from BLASTN.')
+    parser.add_argument("--chunkSize", type=int, default=1000000, help='Size of FASTA chunks for processing.')
+    parser.add_argument("--task", type=str, help="Type of BLAST search to perform, e.g., megablast, blastn, etc.")
+    parser.add_argument("--outfmt", type=str, help="Output format for BLAST results.")
+    parser.add_argument("--max_target_seqs", type=int, default=1, help="Maximum number of target sequences to return per query.")
+    parser.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type: read IDs or full BLAST output lines.")
+    parser.set_defaults(func=main_chunk_blast_hits)
     
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, main_chunk_blast_hits)
