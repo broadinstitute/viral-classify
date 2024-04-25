@@ -560,7 +560,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument('blast_hits_output', help='Output file to store hits from BLASTN.')
     parser.add_argument("--chunkSize", type=int, default=1000000, help='Size of FASTA chunks for processing.')
     parser.add_argument("--task", type=str, help="Type of BLAST search to perform, e.g., megablast, blastn, etc.")
-    parser.add_argument("--outfmt", type=str, help="Output format for BLAST results.")
+    parser.add_argument("--outfmt", type=str, default= "6", help="Output format for BLAST results.")
     parser.add_argument("--max_target_seqs", type=int, default=1, help="Maximum number of target sequences to return per query.")
     parser.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type: read IDs or full BLAST output lines.")
     
