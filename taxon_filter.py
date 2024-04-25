@@ -563,7 +563,6 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument("--outfmt", type=str, help="Output format for BLAST results.")
     parser.add_argument("--max_target_seqs", type=int, default=1, help="Maximum number of target sequences to return per query.")
     parser.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type: read IDs or full BLAST output lines.")
-    parser.set_defaults(func=main_chunk_blast_hits)
     
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, chunk_blast_hits, split_args=True)
