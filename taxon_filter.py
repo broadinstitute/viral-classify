@@ -574,7 +574,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     return parser
 
 def main_chunk_blast_hits(args):
-    """Main function to handle the chunk_blast_hits command."""
+    '''Main function to handle the chunk_blast_hits command.'''
     log.info("Processing BLASTN on chunks...")
     # Call the function that processes the BLASTN command with the provided arguments
     chunk_blast_hits(args.inFasta, args.db, args.blast_hits_output, args.threads, args.chunkSize, args.task, args.outfmt, args.max_target_seqs, args.output_type)
@@ -941,4 +941,7 @@ def full_parser():
 
 
 if __name__ == '__main__':
+    util.cmd.main_argparse(__commands__, __doc__)
+    args = full_parser().parse_args()
+    print(args)  # Debug: print parsed arguments to ensure they're correct
     util.cmd.main_argparse(__commands__, __doc__)
