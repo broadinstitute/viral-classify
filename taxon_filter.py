@@ -49,7 +49,7 @@ setup_logging()
 #Setting up try block to prevent unhandled exception error
 #Build the path to the logs directory in the home directory
 try:
-    log_directory = os.getenv('LOG_DIR', os.path.join(os.path.expanduser('~'), 'logs'))
+    log_directory = os.getcwd()  # Gets the current working directory
 
     # Ensure the directory exists, if not, create it
     if not os.path.exists(log_directory):
