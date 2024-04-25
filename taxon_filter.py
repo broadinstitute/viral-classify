@@ -567,18 +567,23 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser_chunk.add_argument("-outfmt", type=str, help="Custom output formats")
     parser_chunk.add_argument("-max_target_seqs", type=int, default=1, help="Max target sequences to return.")
     parser_chunk.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type.")
+    parser_chunk.set_defaults(func=main_chunk_blast_hits)
 
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, main_chunk_blast_hits)
-    parser_chunk.set_defaults(func=main_chunk_blast_hits)  # Link the main function
+    args = parser.parse_args()
+    if hasattr(args, 'func'):
+        args.func(args)
+    else:
+        parser.print_help() # Link the main function
     return parser
 
 def main_chunk_blast_hits(args):
     '''Main function to handle the chunk_blast_hits command.'''
-    log.info("Processing BLASTN on chunks...")
+    log.info(f"Processing BLASTN on chunks... {args}")
     # Call the function that processes the BLASTN command with the provided arguments
     chunk_blast_hits(args.inFasta, args.db, args.blast_hits_output, args.threads, args.chunkSize, args.task, args.outfmt, args.max_target_seqs, args.output_type)
-
+    print("Executing chunk_blast_hits with args:", args)
 __commands__.append(('chunk_blast_hits', parser_chunk_blast_hits))
 
 def deplete_blastn_bam(inBam, db, outBam, threads=None, chunkSize=1000000, JVMmemory=None):
@@ -941,7 +946,4 @@ def full_parser():
 
 
 if __name__ == '__main__':
-    util.cmd.main_argparse(__commands__, __doc__)
-    args = full_parser().parse_args()
-    print(args)  # Debug: print parsed arguments to ensure they're correct
     util.cmd.main_argparse(__commands__, __doc__)
