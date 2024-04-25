@@ -37,7 +37,8 @@ import classify.blast
 import classify.last
 import classify.bmtagger
 import read_utils
-#test to locate logging_config.py
+
+
 '''
 import sys
 sys.path.append('/opt/viral-ngs/viral-classify')
@@ -424,7 +425,7 @@ def multi_db_deplete_bam(inBam, refDbs, deplete_method, outBam, **kwargs):
 
 
 # ========================
-# ***  deplete_blastn  ***
+# ***  chunk_blastn  ***
 # ========================
 
 
@@ -536,7 +537,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, chunkSize=1000000, threads=None, t
     log.info(f"blastn_chunked_fasta executed in {elapsed_time:.2f} seconds")
 
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=1000000, task=None, outfmt='6', max_target_seqs=1, output_type= 'read_id'):
-    'Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'
+    '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
     if chunkSize:
         log.info("Running BLASTN on %s against database %s", inFasta, db)
         # Directly use the specified pre-made database for BLASTN search
@@ -554,10 +555,6 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads=None, chunkSize=100
                     outf.write(output + '\n')
 
 def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
-    parser = argparse.ArgumentParser(description="Process BLAST hits by dividing a FASTA file into smaller chunks for parallel processing.")
-    
-    # Creating a subparser for the 'chunk_blast_hits' command
-    parser = argparse.ArgumentParser(description="Process BLAST hits by dividing a FASTA file into smaller chunks for parallel processing.")
     parser.add_argument('inFasta', help='Input FASTA file.')
     parser.add_argument('db', help='BLASTN database.')
     parser.add_argument('blast_hits_output', help='Output file to store hits from BLASTN.')
@@ -569,16 +566,14 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.set_defaults(func=main_chunk_blast_hits)
     
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
-    util.cmd.attach_main(parser, main_chunk_blast_hits)
+    util.cmd.attach_main(parser, chunk_blast_hits, split_args=True)
     return parser
 
-def main_chunk_blast_hits(args):
-    '''Main function to handle the chunk_blast_hits command.'''
-    log.info("Processing BLASTN on chunks...")
-    # Call the function that processes the BLASTN command with the provided arguments
-    chunk_blast_hits(args.inFasta, args.db, args.blast_hits_output, args.threads, args.chunkSize, args.task, args.outfmt, args.max_target_seqs, args.output_type)
-
 __commands__.append(('chunk_blast_hits', parser_chunk_blast_hits))
+
+# ========================
+# ***  deplete_bwa  ***
+# ========================
 
 def deplete_blastn_bam(inBam, db, outBam, threads=None, chunkSize=1000000, JVMmemory=None):
 #def deplete_blastn_bam(inBam, db, outBam, threads, chunkSize=0, JVMmemory=None):
@@ -937,7 +932,6 @@ __commands__.append(('bmtagger_build_db', parser_bmtagger_build_db))
 
 def full_parser():
     return util.cmd.make_parser(__commands__, __doc__)
-
 
 if __name__ == '__main__':
     util.cmd.main_argparse(__commands__, __doc__)
