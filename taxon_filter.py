@@ -439,7 +439,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
     start_time = time.time()
     try:
         with util.file.open_or_gzopen(out_hits, 'wt') as outf:
-            for line in classify.blast.BlastnTool().get_hits_fasta(input_fasta, db, threads=blast_threads, task=task, outfmt=outfmt, output_type=output_type):
+            for line in classify.blast.BlastnTool().get_hits_fasta(input_fasta, db, threads=blast_threads, outfmt=outfmt, task=task, max_target_seqs=max_target_seqs, output_type=output_type):
                 outf.write(line + '\n')
         log.info("_run_blastn_chunk completed succesfully.")
     except Exception as e:
