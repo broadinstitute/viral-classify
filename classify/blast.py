@@ -70,7 +70,7 @@ class BlastnTool(BlastTools):
     """ Tool wrapper for blastn """
     subtool_name = 'blastn'
 
-    def get_hits_pipe(self, inPipe, db, outfmt, threads=None, task=None, max_target_seqs=1, output_type="read_id"):
+    def get_hits_pipe(self, inPipe, db, outfmt, threads, task=None, max_target_seqs=1, output_type="read_id"):
         start_time = time.time()
         _log.info(f"Executing get_hits_pipe function. Called with outfmt: {outfmt}")
         
@@ -128,7 +128,7 @@ class BlastnTool(BlastTools):
             db,
             threads=threads)
 
-    def get_hits_fasta(self, inFasta, db, outfmt, threads=None, task=None, max_target_seqs=1, output_type='read_id'):
+    def get_hits_fasta(self, inFasta, db, outfmt, threads, task=None, max_target_seqs=1, output_type='read_id'):
         start_time = time.time()
         _log.info(f"Executing get_hits_fasta function. Called with outfmt: {outfmt}")
         with open(inFasta, 'rt') as inf:
