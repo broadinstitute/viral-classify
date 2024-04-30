@@ -429,7 +429,7 @@ def multi_db_deplete_bam(inBam, refDbs, deplete_method, outBam, **kwargs):
 # ========================
 
 
-def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt, task=None, max_target_seqs=1, output_type='read_id'):
+def _run_blastn_chunk(db, input_fasta, out_hits, outfmt, blast_threads, task=None, max_target_seqs=1, output_type='read_id'):
     """ run blastn on the input fasta file. this is intended to be run in parallel
         by blastn_chunked_fasta
     """
@@ -448,7 +448,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt, task=Non
     elapsed_time = time.time() - start_time
     log.info(f"_run_blastn_chunk executed in {elapsed_time:.2f} seconds")
 
-def blastn_chunked_fasta(fasta, db, out_hits, outfmt, chunkSize=1000000, threads=None, task=None, max_target_seqs=1, output_type='read_id'):
+def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt ='6', chunkSize=1000000, task=None, max_target_seqs=1, output_type='read_id'):
     """
     Helper function: blastn a fasta file, overcoming apparent memory leaks on
     an input with many query sequences, by splitting it into multiple chunks
@@ -538,7 +538,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, outfmt, chunkSize=1000000, threads
     elapsed_time = time.time() - start_time
     log.info(f"blastn_chunked_fasta executed in {elapsed_time:.2f} seconds")
 
-def chunk_blast_hits(inFasta, db, blast_hits_output, outfmt, threads=None, chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id'):
+def chunk_blast_hits(inFasta, db, blast_hits_output, outfmt, threads, chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id'):
     '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
     log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}")
     if chunkSize:
