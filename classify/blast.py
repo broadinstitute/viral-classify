@@ -21,7 +21,7 @@ setup_logging()
 #Setting up try block to prevent unhandled exception error
 #Build the path to the logs directory in the home directory
 try:
-    log_directory = os.getenv('LOG_DIR', os.path.join(os.path.expanduser('~'), 'logs'))
+    log_directory = os.getenv(os.path.expanduser('~'), 'logs')
 
     # Ensure the directory exists, if not, create it
     if not os.path.exists(log_directory):
@@ -72,7 +72,7 @@ class BlastnTool(BlastTools):
 
     def get_hits_pipe(self, inPipe, db, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type="read_id"):
         start_time = time.time()
-        _log.debug(f"Executing get_hits_pipe function. Called with outfmt: {outfmt}")
+        _log.info(f"Executing get_hits_pipe function. Called with outfmt: {outfmt}")
         
         #toggle between extracting read IDs only or full blast output (all lines)
         if output_type not in ['read_id', 'full_line']:
@@ -91,9 +91,9 @@ class BlastnTool(BlastTools):
         ]
         cmd = [str(x) for x in cmd]
         #Log BLAST command executed
-        _log.debug('Running blastn command: {}'.format(' '.join(cmd)))
+        _log.info('Running blastn command: {}'.format(' '.join(cmd)))
         
-        #try/finally block added to ensure resources packages are cleaned up regardless of error raised
+        #try/finally block added to ensure resource packages are cleaned up regardless of error raised
         try:
             with subprocess.Popen(cmd, stdin=inPipe, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as blast_pipe:
                 output, error = blast_pipe.communicate()
@@ -130,7 +130,7 @@ class BlastnTool(BlastTools):
 
     def get_hits_fasta(self, inFasta, db, threads=None, task=None, outfmt='6', max_target_seqs=1, output_type='read_id'):
         start_time = time.time()
-        _log.debug(f"Executing get_hits_fasta function. Called with outfmt: {outfmt}")
+        _log.info(f"Executing get_hits_fasta function. Called with outfmt: {outfmt}")
         with open(inFasta, 'rt') as inf:
             for hit in self.get_hits_pipe(inf, db, threads=threads, task=None, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type):
                 yield hit
