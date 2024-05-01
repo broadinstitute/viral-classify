@@ -91,7 +91,8 @@ class BlastnTool(BlastTools):
         ]
         cmd = [str(x) for x in cmd]
         #Log BLAST command executed
-        _log.info(f"Executing get_hits_pipe function. Called with task: {task}")
+        _log.info(f"After executing get_hits_pipe function. Called with outfmt: {outfmt}")
+        _log.info(f"Executing get_hits_pipe function. Called with task: {task} ,type: {type(task)}")
         _log.info('Running blastn command: {}'.format(' '.join(cmd)))
         
         #try/finally block added to ensure resource packages are cleaned up regardless of error raised
