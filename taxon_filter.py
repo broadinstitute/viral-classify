@@ -439,7 +439,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
     start_time = time.time()
     try:
         with util.file.open_or_gzopen(out_hits, 'wt') as outf:
-            for line in classify.blast.BlastnTool().get_hits_fasta(input_fasta, db, threads=blast_threads, outfmt=outfmt, task=task, max_target_seqs=max_target_seqs, output_type=output_type):
+            for line in classify.blast.BlastnTool().get_hits_fasta(inFasta=input_fasta, db=db, threads=blast_threads, outfmt=outfmt, task=task, max_target_seqs=max_target_seqs, output_type=output_type):
                 outf.write(line + '\n')
         log.info("_run_blastn_chunk completed succesfully.")
     except Exception as e:
@@ -528,7 +528,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         cpus_leftover = threads - num_chunks
         blast_threads = 2*max(1, int(cpus_leftover / num_chunks))
         for i in range(num_chunks):
-            executor.submit(_run_blastn_chunk, db=db, input_fasta=input_fastas[i], out_hits=hits_files[i], blast_threads=blast_threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type)
+            executor.submit(_run_blastn_chunk, db=db, input_fasta=input_fastas[i], out_hits=hits_files[i], blast_threads=threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type)
 
     # merge results and clean up
     util.file.cat(out_hits, hits_files)
@@ -544,11 +544,11 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkS
     if chunkSize:
         log.info("Running BLASTN on %s against database %s", inFasta, db)
         # Directly use the specified pre-made database for BLASTN search
-        blastn_chunked_fasta(inFasta, db, blast_hits_output, threads, outfmt, chunkSize, task, max_target_seqs, output_type=output_type)
+        blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type)
     else:
         ## pipe tools together and run blastn multithreaded
         with open(blast_hits_output, 'wt') as outf:
-            for output in classify.blast.BlastnTool().get_hits_fasta(inFasta, db, threads,task=None, outfmt='6', max_target_seqs=1, output_type=output_type):
+            for output in classify.blast.BlastnTool().get_hits_fasta(inFasta=inFasta, db=db, threads=threads,task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type):
                 if output_type == 'read_id':
                     # Extract the first clmn in the output (assuming its the read ID)
                     read_id = output.split('\t')[0]
