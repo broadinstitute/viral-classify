@@ -87,7 +87,7 @@ class BlastnTool(BlastTools):
             '-evalue', '1e-6',
             '-outfmt', str(outfmt),
             '-max_target_seqs', str(max_target_seqs),
-            '-task', str(task) if task else 'blastn',
+            '-task', str(task) if task else 'megablast',
         ]
         cmd = [str(x) for x in cmd]
         #Log BLAST command executed
