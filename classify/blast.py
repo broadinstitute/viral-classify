@@ -78,7 +78,7 @@ class BlastnTool(BlastTools):
         if output_type not in ['read_id', 'full_line']:
             _log.warning(f"Invalid output_type '{output_type}' specified. Defaulting to 'read_id'.")
             output_type = 'read_id'
-        _log.info(f"After executing get_hits_pipe function. Called with task: {task} ,type: {type(task)}")
+        _log.info(f"Prior to running cmd, executing get_hits_pipe function. Called with task: {task} ,type: {type(task)}")
         # run blastn and emit list of read IDs
         threads = util.misc.sanitize_thread_count(threads)
         cmd = [self.install_and_get_path(),
@@ -88,7 +88,7 @@ class BlastnTool(BlastTools):
             '-evalue', '1e-6',
             '-outfmt', str(outfmt),
             '-max_target_seqs', str(max_target_seqs),
-            '-task', str(task) if task else 'megablast',
+            '-task', str(task) if task else 'blastn',
         ]
         cmd = [str(x) for x in cmd]
         #Log BLAST command executed
