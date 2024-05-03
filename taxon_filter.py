@@ -435,13 +435,12 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
     """
     log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}")
     #Might need to remove this path, not absolute
-    #os.environ['BLASTDB']= 'viral-classify/blast'
     start_time = time.time()
     try:
         with util.file.open_or_gzopen(out_hits, 'wt') as outf:
             for line in classify.blast.BlastnTool().get_hits_fasta(inFasta=input_fasta, db=db, threads=blast_threads, outfmt=outfmt, task=task, max_target_seqs=max_target_seqs, output_type=output_type):
                 outf.write(line + '\n')
-        log.info("_run_blastn_chunk completed succesfully.")
+        log.info("_run_blastn_chunk completed succesfully for one chunk.")
     except Exception as e:
         log.error("An error occurred in _run_blastn_chunk.:%s", e)
         raise e
@@ -464,7 +463,6 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     # just in case blast is not installed, install it once, not many times in parallel!
     
     #checks if the blastn_chunked_fasta function is being called
-    log.info("Calling blastn_chunked_fasta function...")
     classify.blast.BlastnTool().install()
 
     # clamp threadcount to number of CPU cores
@@ -494,8 +492,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 
     # adjust chunk size so we don't have a small fraction
     # of a chunk running in its own blast process
-    # if the size of the last chunk is <80% the size of the others,
-    # decrease the chunk size until the last chunk is 80%
+    # if the size of the last chunk is <80% the size of the others, 
     # this is bounded by the MIN_CHUNK_SIZE
     while (number_of_reads / chunkSize) % 1 < 0.8 and chunkSize > MIN_CHUNK_SIZE:
         chunkSize = chunkSize - 1
@@ -530,8 +527,8 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         blast_threads = 2*max(1, int(cpus_leftover / num_chunks))
         log.info(f"CPUs leftover: {cpus_leftover}, blast threads per chunk: {blast_threads}, threads: {threads}, num. of chunks: {num_chunks}")
         for i in range(num_chunks):
-            executor.submit(_run_blastn_chunk, db=db, input_fasta=input_fastas[i], out_hits=hits_files[i], blast_threads=threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type)
-        log.info("Submitted all chunks to executor.")
+            executor.submit(_run_blastn_chunk, db=db, input_fasta=input_fastas[i], out_hits=hits_files[i], blast_threads=blast_threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type)
+        log.info("Submitted a chunk to executor. This is only 1 chunk / total chunks.")
     #Measuring executor runtime 
     executor_elapsed_time = time.time() - start_time_executor()
     log.info(f"Executor (line 521-534) finished in {executor_elapsed_time:.2f} seconds.")
