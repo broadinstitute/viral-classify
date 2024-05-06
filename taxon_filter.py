@@ -543,7 +543,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     elapsed_clean_up = time.time() - clean_up_start_time
     log.info(f"clean up (line 540 - 546) finished in {elapsed_clean_up:.2f} seconds")
     #Measure all of fucntions runtime 
-    elapsed_time = time.time() - start_time()
+    elapsed_time = time.time() - start_time
     log.info(f"Completed the WHOLE blastn_chunked_fasta in {elapsed_time:.2f} seconds.")
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id'):
     '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
