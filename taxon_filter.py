@@ -530,7 +530,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
             executor.submit(_run_blastn_chunk, db=db, input_fasta=input_fastas[i], out_hits=hits_files[i], blast_threads=blast_threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type)
         log.info("Submitted a chunk to executor. This is only 1 chunk / total chunks.")
     #Measuring executor runtime 
-    executor_elapsed_time = time.time() - start_time_executor()
+    executor_elapsed_time = time.time() - start_time_executor
     log.info(f"Executor (line 521-534) finished in {executor_elapsed_time:.2f} seconds.")
     # merge results and clean up
     clean_up_start_time = time.time()
