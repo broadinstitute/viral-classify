@@ -442,7 +442,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
                 outf.write(line + '\n')
         log.info("_run_blastn_chunk completed succesfully for one chunk.")
     except Exception as e:
-        log.error("An error occurred in _run_blastn_chunk.:%s", e)
+        log.error("An error occurred in _run_blastn_chunk.:%s", str(e))
         raise e
     elapsed_time = time.time() - start_time
     log.info(f"_run_blastn_chunk executed in {elapsed_time:.2f} seconds")
@@ -548,22 +548,22 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id'):
     '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
     log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}")
-    if chunkSize:
-        log.info("Running BLASTN on %s against database %s", inFasta, db)
-        # Directly use the specified pre-made database for BLASTN search
+    if chunkSize > 0:
+        log.info("Running BLASTN on %s against database %s with chunkSize: %s", inFasta, db, chunkSize)
         blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type)
     else:
-        ## pipe tools together and run blastn multithreaded
-        with open(blast_hits_output, 'wt') as outf:
-            for output in classify.blast.BlastnTool().get_hits_fasta(inFasta=inFasta, db=db, threads=threads,task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type):
-                if output_type == 'read_id':
-                    # Extract the first clmn in the output (assuming its the read ID)
-                    read_id = output.split('\t')[0]
-                    outf.write(read_id + '\n')
-                else:
-                    #Extract and write full line if the output_type is not set to just read IDs
-                    outf.write(output + '\n')
-
+        log.warning("Invalid or zero chunkSize provided (%s), running BLASTN without chunking.", chunkSize)
+        try:
+            with open(blast_hits_output, 'wt') as outf:
+                for output in classify.blast.BlastnTool().get_hits_fasta(inFasta=inFasta, db=db, threads=threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type):
+                    if output_type == 'read_id':
+                        read_id = output.split('\t')[0]
+                        outf.write(read_id + '\n')
+                    else:
+                        outf.write(output + '\n')
+        except Exception as e:
+            log.error("An error occurred while running BLASTN without chunking: %s", e)
+            raise
 def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument('inFasta', help='Input FASTA file.')
     parser.add_argument('db', help='BLASTN database.')
