@@ -447,7 +447,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
     elapsed_time = time.time() - start_time
     log.info(f"_run_blastn_chunk executed in {elapsed_time:.2f} seconds")
 
-def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type='read_id'):
+def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type='read_id', manual_chunks=None):
     """
     Helper function: blastn a fasta file, overcoming apparent memory leaks on
     an input with many query sequences, by splitting it into multiple chunks
@@ -459,6 +459,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     # the lower bound of how small a fasta chunk can be.
     # too small and the overhead of spawning a new blast process
     # will be detrimental relative to actual computation time
+    
     MIN_CHUNK_SIZE = 20000
     # just in case blast is not installed, install it once, not many times in parallel!
     
@@ -472,35 +473,54 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     # determine size of input data; records in fasta file
     number_of_reads = util.file.fasta_length(fasta)
     log.info("number of reads in fasta file %s" % number_of_reads)
+    
+    #Error raised if empty read file
     if number_of_reads == 0:
         log.info("Number of reads is 0. Empty output file.")
         util.file.make_empty(out_hits)
-    # divide (max, single-thread) chunksize by thread count
-    # to find the  absolute max chunk size per thread
-    chunk_max_size_per_thread = int(chunkSize) // threads
+        return
+    #----TASK DETERMINANT----#
 
-    # find the chunk size if evenly divided among blast threads
-    reads_per_thread = number_of_reads // threads
-
-    # use the smaller of the two chunk sizes so we can run more copies of blast in parallel
-    chunkSize = min(reads_per_thread, chunk_max_size_per_thread)
-
-    # if the chunk size is too small, impose a sensible size
-    chunkSize = max(chunkSize, MIN_CHUNK_SIZE)
-
-    log.info("chunk_max_size_per_thread %s" % chunk_max_size_per_thread)
-
-    # adjust chunk size so we don't have a small fraction
-    # of a chunk running in its own blast process
-    # if the size of the last chunk is <80% the size of the others, 
-    # this is bounded by the MIN_CHUNK_SIZE
-    while (number_of_reads / chunkSize) % 1 < 0.8 and chunkSize > MIN_CHUNK_SIZE:
-        chunkSize = chunkSize - 1
-    
-    log.info("blastn chunk size %s" % chunkSize)
-    log.info("number of chunks to create %s" % (number_of_reads / chunkSize))
-    log.info("blastn parallel instances %s" % threads)
-    log.info(f"outfmt value: {outfmt}")
+    #if task is set to megablast
+    if task == 'megablast':
+        if manual_chunks:
+            num_chunks = min(manual_chunks, threads)
+        else:
+            num_chunks = threads
+        
+        chunkSize = max(int(number_of_reads / num_chunks), 1)
+        extra_threads = threads - num_chunks
+        log.info("blastn chunk size %s" % chunkSize)
+        log.info("number of chunks to create %s" % (number_of_reads / chunkSize))
+        log.info("blastn parallel instances %s" % threads)
+        log.info(f"outfmt value: {outfmt}")
+        log.info(f"Task is megablast: Using {num_chunks} chunks, each with a chunk size of {chunkSize}. {extra_threads} extra threads available.")
+    #original code set if blastn is set for task
+    elif task == 'blastn':
+        chunk_max_size_per_thread = int(chunkSize) // threads
+        reads_per_thread = number_of_reads // threads
+        chunkSize = min(reads_per_thread, chunk_max_size_per_thread)
+        chunkSize = max(chunkSize, MIN_CHUNK_SIZE)
+        num_chunks = max(int(number_of_reads / chunkSize), 1)
+        log.info("chunk_max_size_per_thread %s" % chunk_max_size_per_thread)
+        # adjust chunk size so we don't have a small fraction
+        # of a chunk running in its own blast process
+        # if the size of the last chunk is <80% the size of the others, 
+        # this is bounded by the MIN_CHUNK_SIZE
+        while (number_of_reads / chunkSize) % 1 < 0.8 and chunkSize > MIN_CHUNK_SIZE:
+            chunkSize = chunkSize - 1
+        extra_threads = 0
+        log.info(f"Task is blastn: Using original logic with chunk size {chunkSize} and {num_chunks} chunks.")
+        log.info("blastn chunk size %s" % chunkSize)
+        log.info("number of chunks to create %s" % (number_of_reads / chunkSize))
+        log.info("blastn parallel instances %s" % threads)
+        log.info(f"outfmt value: {outfmt}")
+    else:
+        # Default logic for tasks other than 'megablast' or 'blastn'
+        chunkSize = max(int(chunkSize), MIN_CHUNK_SIZE)
+        num_chunks = max(int(number_of_reads / chunkSize), 1)
+        extra_threads = threads - num_chunks
+        log.info(f"Default task handling: Using {num_chunks} chunks, each with a chunk size of {chunkSize}. {extra_threads} extra threads available.")
     # chunk the input file. This is a sequential operation
     input_fastas = []
     with open(fasta, "rt") as fastaFile:
@@ -515,7 +535,12 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 
     num_chunks = len(input_fastas)
     log.info("number of chunk files to be processed by blastn %d" % num_chunks)
+    
+    #----EXECUTOR-----#
+
+    #Executor start time 
     start_time_executor = time.time()
+    
     # run blastn on each of the fasta input chunks
     hits_files = list(mkstempfname('.hits.txt') for f in input_fastas)
     with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor:
@@ -526,25 +551,43 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         cpus_leftover = threads - num_chunks
         blast_threads = 2*max(1, int(cpus_leftover / num_chunks))
         log.info(f"CPUs leftover: {cpus_leftover}, blast threads per chunk: {blast_threads}, threads: {threads}, num. of chunks: {num_chunks}")
-        for i in range(num_chunks):
-            executor.submit(_run_blastn_chunk, db=db, input_fasta=input_fastas[i], out_hits=hits_files[i], blast_threads=blast_threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type)
-        log.info("Submitted a chunk to executor. This is only 1 chunk / total chunks.")
+        
+        #Subumit each fasta chunk to the executor 
+        futures = []
+        for f, (fasta, hits) in enumerate(zip(input_fastas, hits_files)):
+            future = executor.submit(_run_blastn_chunk, db, fasta, hits, blast_threads, outfmt, task, max_target_seqs, output_type)
+            futures.append(future)
+            log.info(f"Submitted chunk {f} to executor.")
+        # Track the completion of futures
+        for f, future in enumerate(concurrent.futures.as_completed(futures)):
+            log.info(f"Chunk {f} processed with result: {future.result()}")
+    
     #Measuring executor runtime 
     executor_elapsed_time = time.time() - start_time_executor
-    log.info(f"Executor (line 521-534) finished in {executor_elapsed_time:.2f} seconds.")
-    # merge results and clean up
+    log.info(f"Executor for all chunks finished in {executor_elapsed_time:.2f} seconds.")
+    
+    #----CLEAN UP------#
+
+    # Clean up - measure time
     clean_up_start_time = time.time()
+   
+    # Clean up
     util.file.cat(out_hits, hits_files)
     for i in range(num_chunks):
         os.unlink(input_fastas[i])
         os.unlink(hits_files[i])
     log.info("Cleaned up all temporary files.")
+
     #Measure clean up runtime
     elapsed_clean_up = time.time() - clean_up_start_time
     log.info(f"clean up (line 540 - 546) finished in {elapsed_clean_up:.2f} seconds")
-    #Measure all of fucntions runtime 
+
+    #----OVERALL RUNTIME------#
+
+    #Measure entire function runtime 
     elapsed_time = time.time() - start_time()
     log.info(f"Completed the WHOLE blastn_chunked_fasta in {elapsed_time:.2f} seconds.")
+
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id'):
     '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
     log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}")
@@ -573,7 +616,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument("--task", type=str, help="Type of BLAST search to perform, e.g., megablast, blastn, etc.")
     parser.add_argument("--max_target_seqs", type=int, default=1, help="Maximum number of target sequences to return per query.")
     parser.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type: read IDs or full BLAST output lines.")
-    
+    parser.add_argument("--manual_chunks", default=None, type= int, help="Set manually number of chunks.")
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, chunk_blast_hits, split_args=True)
     return parser
