@@ -447,7 +447,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
     elapsed_time = time.time() - start_time
     log.info(f"_run_blastn_chunk executed in {elapsed_time:.2f} seconds")
 
-def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type='read_id', manual_chunks=None):
+def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", task=None, max_target_seqs=1, output_type='read_id', manual_chunks=None):
     """
     Helper function: blastn a fasta file, overcoming apparent memory leaks on
     an input with many query sequences, by splitting it into multiple chunks
@@ -568,7 +568,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     
     #----CLEAN UP------#
 
-    # Clean up - measure time
+    # Log starttime for cleanup
     clean_up_start_time = time.time()
    
     # Clean up
@@ -588,13 +588,23 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     elapsed_time = time.time() - start_time()
     log.info(f"Completed the WHOLE blastn_chunked_fasta in {elapsed_time:.2f} seconds.")
 
-def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id'):
+def nullable_int(value):
+    """ Set nullable integers for None values. """
+    if value.lower() == 'none':
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{value} is not a valid integer")
+
+
+def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id', manual_chunks=None):
     '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
     log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}")
     if chunkSize:
         log.info("Running BLASTN on %s against database %s", inFasta, db)
         # Directly use the specified pre-made database for BLASTN search
-        blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type)
+        blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type, manual_chunks=manual_chunks)
     else:
         ## pipe tools together and run blastn multithreaded
         with open(blast_hits_output, 'wt') as outf:
@@ -616,7 +626,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument("--task", type=str, help="Type of BLAST search to perform, e.g., megablast, blastn, etc.")
     parser.add_argument("--max_target_seqs", type=int, default=1, help="Maximum number of target sequences to return per query.")
     parser.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type: read IDs or full BLAST output lines.")
-    parser.add_argument("--manual_chunks", default=None, type= int, help="Set manually number of chunks.")
+    parser.add_argument("--manual_chunks", type=nullable_int, default=None, help="Set manually the number of chunks; use 'None' for automatic determination based on CPU cores.")
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, chunk_blast_hits, split_args=True)
     return parser
