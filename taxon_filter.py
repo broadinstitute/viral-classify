@@ -608,7 +608,7 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkS
     else:
         ## pipe tools together and run blastn multithreaded
         with open(blast_hits_output, 'wt') as outf:
-            for output in classify.blast.BlastnTool().get_hits_fasta(inFasta=inFasta, db=db, threads=threads,task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type):
+            for output in classify.blast.BlastnTool().get_hits_fasta(inFasta=inFasta, db=db, threads=threads,task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type, manual_chunks=manual_chunks):
                 if output_type == 'read_id':
                     # Extract the first clmn in the output (assuming its the read ID)
                     read_id = output.split('\t')[0]
@@ -626,7 +626,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument("--task", type=str, help="Type of BLAST search to perform, e.g., megablast, blastn, etc.")
     parser.add_argument("--max_target_seqs", type=int, default=1, help="Maximum number of target sequences to return per query.")
     parser.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type: read IDs or full BLAST output lines.")
-    parser.add_argument("--manual_chunks", type=nullable_int, default=None, help="Set manually the number of chunks; use 'None' for automatic determination based on CPU cores.")
+    parser.add_argument("--manual_chunks", type=nullable_int, default=None, help="Set manually the number of chunk (default: 'None' to use all available CPU cores).")
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, chunk_blast_hits, split_args=True)
     return parser
