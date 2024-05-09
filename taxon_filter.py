@@ -447,7 +447,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
     elapsed_time = time.time() - start_time
     log.info(f"_run_blastn_chunk executed in {elapsed_time:.2f} seconds")
 
-def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", task=None, max_target_seqs=1, output_type='read_id', manual_chunks=None):
+def blastn_chunked_fasta(fasta, db, out_hits, threads, chunkSize=1000000, outfmt="6", task=None, max_target_seqs=1, output_type='read_id', manual_chunks=None):
     """
     Helper function: blastn a fasta file, overcoming apparent memory leaks on
     an input with many query sequences, by splitting it into multiple chunks
@@ -610,7 +610,7 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkS
         log.info(f"Using chunkSize: {chunkSize}")
         blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type, manual_chunks=None)
     else:
-        ## pipe tools together and run blastn multithreaded if neither manual_chunks or chunkSize is provided (default if neither)
+        ## pipe tools together and run blastn multithreaded if neither manual_chunks or chunkSize is provided (default if n)
         with open(blast_hits_output, 'wt') as outf:
             for output in classify.blast.BlastnTool().get_hits_fasta(inFasta=inFasta, db=db, threads=threads,task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type, manual_chunks=manual_chunks):
                 if output_type == 'read_id':
