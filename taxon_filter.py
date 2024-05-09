@@ -601,12 +601,16 @@ def nullable_int(value):
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id', manual_chunks=None):
     '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
     log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}")
-    if chunkSize:
-        log.info("Running BLASTN on %s against database %s", inFasta, db)
-        # Directly use the specified pre-made database for BLASTN search
-        blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type, manual_chunks=manual_chunks)
+    # Check if manual_chunks is provided and use it to define chunk logic (priority)
+    if manual_chunks is not None:
+        log.info(f"Using manual_chunks: {manual_chunks}")
+        blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=None, task=task, max_target_seqs=max_target_seqs, output_type=output_type, manual_chunks=manual_chunks)
+    elif chunkSize is not None:
+        # Use chunkSize if manual_chunks is not provided (2nd priority)
+        log.info(f"Using chunkSize: {chunkSize}")
+        blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type, manual_chunks=None)
     else:
-        ## pipe tools together and run blastn multithreaded
+        ## pipe tools together and run blastn multithreaded if neither manual_chunks or chunkSize is provided (default if neither)
         with open(blast_hits_output, 'wt') as outf:
             for output in classify.blast.BlastnTool().get_hits_fasta(inFasta=inFasta, db=db, threads=threads,task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type, manual_chunks=manual_chunks):
                 if output_type == 'read_id':
