@@ -442,7 +442,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
                 outf.write(line + '\n')
         log.info("_run_blastn_chunk completed succesfully for one chunk.")
     except Exception as e:
-        log.error("An error occurred in _run_blastn_chunk.:%s", str(e))
+        log.error("An error occurred in _run_blastn_chunk.: %s", str(e))
         raise e
     elapsed_time = time.time() - start_time
     log.info(f"_run_blastn_chunk executed in {elapsed_time:.2f} seconds")
@@ -482,18 +482,18 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     #----CHUNKING----#
     # divide (max, single-thread) chunksize by thread count
     # to find the  absolute max chunk size per thread
-    chunk_max_size_per_thread = int(chunkSize) // threads
+   #chunk_max_size_per_thread = int(chunkSize) // threads
 
     # find the chunk size if evenly divided among blast threads
     reads_per_thread = number_of_reads // threads
 
     # use the smaller of the two chunk sizes so we can run more copies of blast in parallel
-    chunkSize = min(reads_per_thread, chunk_max_size_per_thread)
+    chunkSize = reads_per_thread
 
     # if the chunk size is too small, impose a sensible size
     chunkSize = max(chunkSize, MIN_CHUNK_SIZE)
 
-    log.info("chunk_max_size_per_thread %s" % chunk_max_size_per_thread)
+    #log.info("chunk_max_size_per_thread %s" % chunk_max_size_per_thread)
 
     # adjust chunk size so we don't have a small fraction
     # of a chunk running in its own blast process
@@ -526,9 +526,12 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 
     #Executor start time 
     start_time_executor = time.time()
-     # run blastn on each of the fasta input chunks
+    # run blastn on each of the fasta input chunks
+    # Log the number of workers that will be used
+    log.info(f"Initializing executor with {threads} max_workers.")
     hits_files = list(mkstempfname('.hits.txt') for f in input_fastas)
     with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor:
+        log.info(f"Executor initialized with {executor._max_workers} workers.")  
         # If we have so few chunks that there are cpus left over,
         # divide extra cpus evenly among chunks where possible
         # rounding to 1 if there are more chunks than extra threads.
@@ -542,7 +545,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         for f, (fasta, hits) in enumerate(zip(input_fastas, hits_files)):
             future = executor.submit(_run_blastn_chunk, db, fasta, hits, blast_threads, outfmt, task, max_target_seqs, output_type)
             futures.append(future)
-            log.info(f"Submitted chunk {f} to executor.")
+             log.info(f"Submitted chunk {f} to executor with {blast_threads} threads per chunk.")
         # Track the completion of futures
         for f, future in enumerate(concurrent.futures.as_completed(futures)):
             log.info(f"Chunk {f} processed with result: {future.result()}")
@@ -570,7 +573,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     #----OVERALL RUNTIME------#
 
     #Measure entire function runtime 
-    elapsed_time = time.time() - start_time()
+    elapsed_time = time.time() - start_time
     log.info(f"Completed the WHOLE blastn_chunked_fasta in {elapsed_time:.2f} seconds.")
 
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id'):
