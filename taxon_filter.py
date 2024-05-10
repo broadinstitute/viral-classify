@@ -545,7 +545,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         for f, (fasta, hits) in enumerate(zip(input_fastas, hits_files)):
             future = executor.submit(_run_blastn_chunk, db, fasta, hits, blast_threads, outfmt, task, max_target_seqs, output_type)
             futures.append(future)
-             log.info(f"Submitted chunk {f} to executor with {blast_threads} threads per chunk.")
+            log.info(f"Submitted chunk {f} to executor with {blast_threads} threads per chunk.")
         # Track the completion of futures
         for f, future in enumerate(concurrent.futures.as_completed(futures)):
             log.info(f"Chunk {f} processed with result: {future.result()}")
