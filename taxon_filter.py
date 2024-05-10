@@ -472,9 +472,12 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     # determine size of input data; records in fasta file
     number_of_reads = util.file.fasta_length(fasta)
     log.info("number of reads in fasta file %s" % number_of_reads)
+    
+    #Error raised if empty read file
     if number_of_reads == 0:
         log.info("Number of reads is 0. Empty output file.")
         util.file.make_empty(out_hits)
+        return
     # divide (max, single-thread) chunksize by thread count
     # to find the  absolute max chunk size per thread
     chunk_max_size_per_thread = int(chunkSize) // threads
@@ -501,6 +504,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     log.info("number of chunks to create %s" % (number_of_reads / chunkSize))
     log.info("blastn parallel instances %s" % threads)
     log.info(f"outfmt value: {outfmt}")
+    
     # chunk the input file. This is a sequential operation
     input_fastas = []
     with open(fasta, "rt") as fastaFile:
@@ -515,8 +519,12 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 
     num_chunks = len(input_fastas)
     log.info("number of chunk files to be processed by blastn %d" % num_chunks)
+    
+    #----EXECUTOR-----#
+
+    #Executor start time 
     start_time_executor = time.time()
-    # run blastn on each of the fasta input chunks
+     # run blastn on each of the fasta input chunks
     hits_files = list(mkstempfname('.hits.txt') for f in input_fastas)
     with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor:
         # If we have so few chunks that there are cpus left over,
@@ -526,25 +534,43 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         cpus_leftover = threads - num_chunks
         blast_threads = 2*max(1, int(cpus_leftover / num_chunks))
         log.info(f"CPUs leftover: {cpus_leftover}, blast threads per chunk: {blast_threads}, threads: {threads}, num. of chunks: {num_chunks}")
-        for i in range(num_chunks):
-            executor.submit(_run_blastn_chunk, db=db, input_fasta=input_fastas[i], out_hits=hits_files[i], blast_threads=blast_threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type)
-        log.info("Submitted a chunk to executor. This is only 1 chunk / total chunks.")
+        
+        #Subumit each fasta chunk to the executor 
+        futures = []
+        for f, (fasta, hits) in enumerate(zip(input_fastas, hits_files)):
+            future = executor.submit(_run_blastn_chunk, db, fasta, hits, blast_threads, outfmt, task, max_target_seqs, output_type)
+            futures.append(future)
+            log.info(f"Submitted chunk {f} to executor.")
+        # Track the completion of futures
+        for f, future in enumerate(concurrent.futures.as_completed(futures)):
+            log.info(f"Chunk {f} processed with result: {future.result()}")
+    
     #Measuring executor runtime 
     executor_elapsed_time = time.time() - start_time_executor
-    log.info(f"Executor (line 521-534) finished in {executor_elapsed_time:.2f} seconds.")
-    # merge results and clean up
+    log.info(f"Executor for all chunks finished in {executor_elapsed_time:.2f} seconds.")
+    
+    #----CLEAN UP------#
+
+    # Log starttime for cleanup
     clean_up_start_time = time.time()
+   
+    # Clean up
     util.file.cat(out_hits, hits_files)
     for i in range(num_chunks):
         os.unlink(input_fastas[i])
         os.unlink(hits_files[i])
     log.info("Cleaned up all temporary files.")
+
     #Measure clean up runtime
     elapsed_clean_up = time.time() - clean_up_start_time
     log.info(f"clean up (line 540 - 546) finished in {elapsed_clean_up:.2f} seconds")
-    #Measure all of fucntions runtime 
-    elapsed_time = time.time() - start_time
+
+    #----OVERALL RUNTIME------#
+
+    #Measure entire function runtime 
+    elapsed_time = time.time() - start_time()
     log.info(f"Completed the WHOLE blastn_chunked_fasta in {elapsed_time:.2f} seconds.")
+
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id'):
     '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
     log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}")
