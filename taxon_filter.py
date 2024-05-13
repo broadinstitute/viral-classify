@@ -482,13 +482,13 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     #----CHUNKING----#
     # divide (max, single-thread) chunksize by thread count
     # to find the  absolute max chunk size per thread
-   #chunk_max_size_per_thread = int(chunkSize) // threads
+    #chunk_max_size_per_thread = int(chunkSize) // threads
 
     # find the chunk size if evenly divided among blast threads
     reads_per_thread = number_of_reads // threads
 
     # use the smaller of the two chunk sizes so we can run more copies of blast in parallel
-    chunkSize = reads_per_thread
+    chunkSize = min(reads_per_thread,chunkSize)
 
     # if the chunk size is too small, impose a sensible size
     chunkSize = max(chunkSize, MIN_CHUNK_SIZE)
