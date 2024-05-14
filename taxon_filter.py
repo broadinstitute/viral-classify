@@ -465,13 +465,13 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     #checks if the blastn_chunked_fasta function is being called
     classify.blast.BlastnTool().install()
 
-    # Calculate the optimal number of chunks
-    optimal_chunks = threads // 4
-    log.info(f"Optimal number of chunks set at: {optimal_chunks}")
-
     # clamp threadcount to number of CPU cores
     threads = util.misc.sanitize_thread_count(threads)
     log.info(f"Sanitized thread count: {threads}")
+
+    # Calculate the optimal number of chunks
+    optimal_chunks = threads // 4
+    log.info(f"Optimal number of chunks set at: {optimal_chunks}")
 
     # determine size of input data; records in fasta file
     number_of_reads = util.file.fasta_length(fasta)
