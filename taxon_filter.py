@@ -22,7 +22,6 @@ import cProfile
 import time
 from Bio import SeqIO
 import pysam
-import psutil
 
 import util.cmd
 import util.file
@@ -528,10 +527,6 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     log.info("number of chunk files to be processed by blastn %d" % num_chunks)
     
     #----EXECUTOR-----#
-    # Before starting heavy computation
-    cpu_usage_before = psutil.cpu_percent(interval=1)
-    log.info(f"CPU usage before executor computation: {cpu_usage_before}%")
-    
     #Executor start time 
     start_time_executor = time.time()
     
@@ -562,10 +557,6 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     #Measuring executor runtime 
     executor_elapsed_time = time.time() - start_time_executor
     log.info(f"Executor for all chunks finished in {executor_elapsed_time:.2f} seconds.")
-    # After computation
-    cpu_usage_after = psutil.cpu_percent(interval=1)
-    log.info(f"CPU usage after executor computation: {cpu_usage_after}%")
-    
     #----CLEAN UP------#
     # Log starttime for cleanup
     clean_up_start_time = time.time()
