@@ -466,7 +466,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     classify.blast.BlastnTool().install()
 
     # Calculate the optimal number of chunks
-    optimal_chunks = threads // 2
+    optimal_chunks = threads // 4
     log.info(f"Optimal number of chunks set at: {optimal_chunks}")
 
     # clamp threadcount to number of CPU cores
@@ -540,7 +540,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         # divide extra cpus evenly among chunks where possible
         # rounding to 1 if there are more chunks than extra threads.
         # Then double up this number to better maximize CPU usage.
-        cpus_leftover = threads - optimal_chunks
+        cpus_leftover = threads - (2* optimal_chunks)
         blast_threads = 2*max(1, int(cpus_leftover / optimal_chunks))
         log.info(f"CPUs leftover: {cpus_leftover}, blast threads per chunk: {blast_threads}, threads: {threads}, num. of chunks: {num_chunks}")
         
