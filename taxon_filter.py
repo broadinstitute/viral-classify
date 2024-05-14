@@ -503,8 +503,12 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     # of a chunk running in its own blast process
     # if the size of the last chunk is <80% the size of the others, 
     # this is bounded by the MIN_CHUNK_SIZE
-    while (number_of_reads / chunkSize) % 1 < 0.8 and chunkSize > MIN_CHUNK_SIZE:
-        chunkSize = chunkSize - 1
+    #while (number_of_reads / chunkSize) % 1 < 0.8 and chunkSize > MIN_CHUNK_SIZE:
+        #chunkSize = chunkSize - 1
+    
+    # Adjust chunk size to round up if there's a remainder
+    if number_of_reads % optimal_chunks != 0:
+        chunkSize += 1
     
     log.info("blastn chunk size %s" % chunkSize)
     log.info("number of chunks to create %s" % (number_of_reads / chunkSize))
@@ -535,7 +539,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     log.info(f"Initializing executor with {threads} max_workers.")
     hits_files = list(mkstempfname('.hits.txt') for f in input_fastas)
     with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor:
-        log.info(f"Executor initialized with {executor._max_workers} workers.")  
+        log.info(f"Executor initialized with {executor.max_workers} workers.")  
         # If we have so few chunks that there are cpus left over,
         # divide extra cpus evenly among chunks where possible
         # rounding to 1 if there are more chunks than extra threads.
