@@ -538,8 +538,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     # Log the number of workers that will be used
     log.info(f"Initializing executor with {threads} max_workers.")
     hits_files = list(mkstempfname('.hits.txt') for f in input_fastas)
-    with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor:
-        log.info(f"Executor initialized with {executor.max_workers} workers.")  
+    with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor: 
         # If we have so few chunks that there are cpus left over,
         # divide extra cpus evenly among chunks where possible
         # rounding to 1 if there are more chunks than extra threads.
