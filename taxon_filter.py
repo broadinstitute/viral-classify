@@ -485,10 +485,14 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     #chunk_max_size_per_thread = int(chunkSize) // threads
 
     # find the chunk size if evenly divided among blast threads
-    reads_per_thread = number_of_reads // threads
+    #reads_per_thread = (number_of_reads // threads) 
+
+    # Calculate the size of each chunk to create exactly 4 chunks
+    target_num_chunks = 4
+    chunkSize = number_of_reads // target_num_chunks
 
     # use the smaller of the two chunk sizes so we can run more copies of blast in parallel
-    chunkSize = min(reads_per_thread,chunkSize)
+    #chunkSize = min(reads_per_thread, chunkSize)
 
     # if the chunk size is too small, impose a sensible size
     chunkSize = max(chunkSize, MIN_CHUNK_SIZE)
@@ -502,7 +506,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     while (number_of_reads / chunkSize) % 1 < 0.8 and chunkSize > MIN_CHUNK_SIZE:
         chunkSize = chunkSize - 1
     
-    log.info("blastn chunk size %s" % chunkSize)
+    log.info("Final blastn chunk size %s" % chunkSize)
     log.info("number of chunks to create %s" % (number_of_reads / chunkSize))
     log.info("blastn parallel instances %s" % threads)
     log.info(f"outfmt value: {outfmt}")
@@ -537,7 +541,8 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         # rounding to 1 if there are more chunks than extra threads.
         # Then double up this number to better maximize CPU usage.
         cpus_leftover = threads - num_chunks
-        blast_threads = 2*max(1, int(cpus_leftover / num_chunks))
+        blast_threads = 4 
+        #blast_threads = 2*max(1, int(cpus_leftover / num_chunks))
         log.info(f"CPUs leftover: {cpus_leftover}, blast threads per chunk: {blast_threads}, threads: {threads}, num. of chunks: {num_chunks}")
         
         #Subumit each fasta chunk to the executor 
