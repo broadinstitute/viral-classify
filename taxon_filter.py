@@ -586,12 +586,12 @@ def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkS
     log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
     if chunkSize > 0:
         log.info("Running BLASTN on %s against database %s with chunkSize: %s", inFasta, db, chunkSize)
-        blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type)
+        blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type, taxidlist=taxidlist)
     else:
         log.warning("Invalid or zero chunkSize provided (%s), running BLASTN without chunking.", chunkSize)
         try:
             with open(blast_hits_output, 'wt') as outf:
-                for output in classify.blast.BlastnTool().get_hits_fasta(inFasta=inFasta, db=db, threads=threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type):
+                for output in classify.blast.BlastnTool().get_hits_fasta(inFasta=inFasta, db=db, threads=threads, task=task, outfmt=outfmt, max_target_seqs=max_target_seqs, output_type=output_type, taxidlist=taxidlist):
                     if output_type == 'read_id':
                         read_id = output.split('\t')[0]
                         outf.write(read_id + '\n')
