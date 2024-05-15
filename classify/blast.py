@@ -70,7 +70,7 @@ class BlastnTool(BlastTools):
     """ Tool wrapper for blastn """
     subtool_name = 'blastn'
 
-    def get_hits_pipe(self, inPipe, db, threads, outfmt, task=None, max_target_seqs=1, output_type="read_id"):
+    def get_hits_pipe(self, inPipe, db, threads, outfmt, task=None, max_target_seqs=1, output_type="read_id", taxidlist=None):
         start_time = time.time()
         _log.info(f"Executing get_hits_pipe function. Called with outfmt: {outfmt}")
         
@@ -90,6 +90,10 @@ class BlastnTool(BlastTools):
             '-max_target_seqs', str(max_target_seqs),
             '-task', str(task) if task else 'blastn',
         ]
+        #Add taxidlist if specified by user
+        if taxidlist:
+            cmd.extend(['-taxidlist', taxidlist])
+
         cmd = [str(x) for x in cmd]
         #Log BLAST command executed
         _log.info(f"After executing get_hits_pipe function. Called with outfmt: {outfmt}")
@@ -131,11 +135,11 @@ class BlastnTool(BlastTools):
             db,
             threads=threads)
 
-    def get_hits_fasta(self, inFasta, db, threads, outfmt, task, max_target_seqs=1, output_type='read_id'):
+    def get_hits_fasta(self, inFasta, db, threads, outfmt, task, max_target_seqs=1, output_type='read_id', taxidlist=None):
         start_time = time.time()
         _log.info(f"Executing get_hits_fasta function. Called with outfmt: {outfmt}")
         with open(inFasta, 'rt') as inf:
-            for hit in self.get_hits_pipe(inf, db=db, threads=threads, outfmt=outfmt, task=task,  max_target_seqs=max_target_seqs, output_type=output_type):
+            for hit in self.get_hits_pipe(inf, db=db, threads=threads, outfmt=outfmt, task=task, max_target_seqs=max_target_seqs, output_type=output_type, taxidlist=taxidlist):
                 yield hit
         elapsed_time = time.time() - start_time
         _log.info(f"get_hits_fasta exectued in {elapsed_time:.2f} seconds")
