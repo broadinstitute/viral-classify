@@ -93,6 +93,7 @@ class BlastnTool(BlastTools):
         #Add taxidlist if specified by user
         if taxidlist:
             cmd.extend(['-taxidlist', taxidlist])
+            _log.info(f"Using taxidlist: {taxidlist} in BLAST command")
 
         cmd = [str(x) for x in cmd]
         #Log BLAST command executed
