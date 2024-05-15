@@ -470,7 +470,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     log.info(f"Sanitized thread count: {threads}")
 
     # Calculate the optimal number of chunks
-    optimal_chunks = threads // 4
+    optimal_chunks = threads // 8
     log.info(f"Optimal number of chunks set at: {optimal_chunks}")
 
     # determine size of input data; records in fasta file
@@ -543,9 +543,9 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         # divide extra cpus evenly among chunks where possible
         # rounding to 1 if there are more chunks than extra threads.
         # Then double up this number to better maximize CPU usage.
-        cpus_leftover = threads - (2* optimal_chunks)
-        blast_threads = 2*max(1, int(cpus_leftover / optimal_chunks))
-        log.info(f"CPUs leftover: {cpus_leftover}, blast threads per chunk: {blast_threads}, threads: {threads}, num. of chunks: {num_chunks}")
+        #cpus_leftover = threads - optimal_chunks
+        blast_threads = max(1, int(threads / optimal_chunks))
+        log.info(f"Total CPU threads: {threads} = Blast threads per chunk: {blast_threads} x num. of chunks: {num_chunks}")
         
         #Subumit each fasta chunk to the executor 
         futures = []
@@ -609,7 +609,7 @@ def parser_chunk_blast_hits(parser=argparse.ArgumentParser()):
     parser.add_argument("--task", type=str, help="Type of BLAST search to perform, e.g., megablast, blastn, etc.")
     parser.add_argument("--max_target_seqs", type=int, default=1, help="Maximum number of target sequences to return per query.")
     parser.add_argument("--output_type", choices=["read_id", "full_line"], default="read_id", help="Specify the output type: read IDs or full BLAST output lines.")
-    parser.add_argument("--taxidlist", type=str, help="Optional path to a taxidlist file for limiting the BLAST search to specific taxa.", required=False)
+    parser.add_argument("--taxidlist", help="Optional path to a taxidlist file for limiting the BLAST search to specific taxa.", required=False)
     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
     util.cmd.attach_main(parser, chunk_blast_hits, split_args=True)
     return parser
