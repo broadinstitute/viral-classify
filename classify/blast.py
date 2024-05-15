@@ -98,7 +98,7 @@ class BlastnTool(BlastTools):
         cmd = [str(x) for x in cmd]
         #Log BLAST command executed
         _log.info(f"After executing get_hits_pipe function. Called with outfmt: {outfmt}")
-        _log.info(f"After executing get_hits_pipe function. Called with task: {task} ,type: {type(task)}")
+        _log.info(f"After executing get_hits_pipe function. Called with task: {task} ,type: {type(task)}, taxidlist: {taxidlist}, type: {type(taxidlist)}")
         _log.info('Running blastn command: {}'.format(' '.join(cmd)))
         
         #try/finally block added to ensure resource packages are cleaned up regardless of error raised
@@ -138,7 +138,7 @@ class BlastnTool(BlastTools):
 
     def get_hits_fasta(self, inFasta, db, threads, outfmt, task, max_target_seqs=1, output_type='read_id', taxidlist=None):
         start_time = time.time()
-        _log.info(f"Executing get_hits_fasta function. Called with outfmt: {outfmt}")
+        _log.info(f"Executing get_hits_fasta function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
         with open(inFasta, 'rt') as inf:
             for hit in self.get_hits_pipe(inf, db=db, threads=threads, outfmt=outfmt, task=task, max_target_seqs=max_target_seqs, output_type=output_type, taxidlist=taxidlist):
                 yield hit

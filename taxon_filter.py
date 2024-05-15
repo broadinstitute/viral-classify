@@ -433,7 +433,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
     """ run blastn on the input fasta file. this is intended to be run in parallel
         by blastn_chunked_fasta
     """
-    log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}")
+    log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
     #Might need to remove this path, not absolute
     start_time = time.time()
     try:
@@ -454,7 +454,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     and running a new blastn process on each chunk. Return a list of output
     filenames containing hits
     """
-    log.info(f"Executing blastn_chunked_fasta function. Called with outfmt: {outfmt}")
+    log.info(f"Executing blastn_chunked_fasta function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
     start_time = time.time()
     # the lower bound of how small a fasta chunk can be.
     # too small and the overhead of spawning a new blast process
@@ -583,7 +583,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id', taxidlist=None):
     '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
-    log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}")
+    log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
     if chunkSize > 0:
         log.info("Running BLASTN on %s against database %s with chunkSize: %s", inFasta, db, chunkSize)
         blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type)
