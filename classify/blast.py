@@ -89,7 +89,6 @@ class BlastnTool(BlastTools):
         if output_type not in ['read_id', 'full_line']:
             _log.warning(f"Invalid output_type '{output_type}' specified. Defaulting to 'read_id'.")
             output_type = 'read_id'
-        _log.info(f"Prior to running cmd, executing get_hits_pipe function. Called with task: {task} ,type: {type(task)}")
         # run blastn and emit list of read IDs
         threads = util.misc.sanitize_thread_count(threads)
         cmd = [self.install_and_get_path(),
@@ -122,7 +121,9 @@ class BlastnTool(BlastTools):
 
         if blast_pipe.poll():
             raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
-
+        elapsed_time = time.time() - start_time
+        _log.info(f"get_hits_pipe exectued in {elapsed_time:.2f} seconds")
+        
     def get_hits_bam(self, inBam, db, threads=None):
         return self.get_hits_pipe(
             tools.samtools.SamtoolsTool().bam2fa_pipe(inBam),
@@ -130,6 +131,7 @@ class BlastnTool(BlastTools):
             threads=threads)
 
     def get_hits_fasta(self, inFasta, db, threads=None):
+        start_time = time.time()
         with open(inFasta, 'rt') as inf:
             for hit in self.get_hits_pipe(inf, db, threads=threads):
                 yield hit
