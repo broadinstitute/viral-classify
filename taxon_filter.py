@@ -495,7 +495,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 
     # Adjust chunk sizes to distribute remainder reads
     chunk_sizes = [base_reads_per_chunk + (1 if i < remainder_reads else 0) for i in range(max_workers_cpu)]
-
+    log.info(f"Print chunk sizes {chunk_sizes}")
     # Ensure that the user-defined chunk size is respected
     chunkSize = min(chunkSize, max(chunk_sizes))
 
@@ -511,7 +511,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     input_fastas = []
     with open(fasta, "rt") as fastaFile:
         record_iter = SeqIO.parse(fastaFile, "fasta")
-        for batch in util.misc.batch_iterator(record_iter, chunk_sizes):
+        for batch in util.misc.batch_iterator(record_iter, chunkSize):
             chunk_fasta = mkstempfname('.fasta')
             with open(chunk_fasta, "wt") as handle:
                count= SeqIO.write(batch, handle, "fasta")
