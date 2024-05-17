@@ -469,10 +469,6 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     threads = util.misc.sanitize_thread_count(threads)
     log.info(f"Sanitized thread count: {threads}")
 
-    # Calculate the optimal number of chunks
-    optimal_chunks = threads // 8
-    log.info(f"Optimal number of chunks set at: {optimal_chunks}")
-
     # determine size of input data; records in fasta file
     number_of_reads = util.file.fasta_length(fasta)
     log.info("number of reads in fasta file %s" % number_of_reads)
@@ -488,38 +484,34 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     # to find the  absolute max chunk size per thread
     #chunk_max_size_per_thread = int(chunkSize) // threads
 
-    # find the chunk size if evenly divided among blast threads
-    reads_per_thread = (number_of_reads // optimal_chunks) 
+    blast_threads = 4
+    max_workers_cpu = max(1, (threads // blast_threads))
+    
+    # Calculate base number of reads per chunk
+    base_reads_per_chunk = number_of_reads // max_workers_cpu
 
-    # use the smaller of the two chunk sizes so we can run more copies of blast in parallel
-    chunkSize = min(reads_per_thread, chunkSize)
+    # Calculate remainder
+    remainder_reads = number_of_reads % max_workers_cpu
 
-    # if the chunk size is too small, impose a sensible size
+    # Adjust chunk sizes to distribute remainder reads
+    chunk_sizes = [base_reads_per_chunk + (1 if i < remainder_reads else 0) for i in range(max_workers_cpu)]
+
+    # Ensure that the user-defined chunk size is respected
+    chunkSize = min(chunkSize, max(chunk_sizes))
+
+    # Ensure the chunk size is not smaller than the minimum chunk size
     chunkSize = max(chunkSize, MIN_CHUNK_SIZE)
-
-    #log.info("chunk_max_size_per_thread %s" % chunk_max_size_per_thread)
-
-    # adjust chunk size so we don't have a small fraction
-    # of a chunk running in its own blast process
-    # if the size of the last chunk is <80% the size of the others, 
-    # this is bounded by the MIN_CHUNK_SIZE
-    #while (number_of_reads / chunkSize) % 1 < 0.8 and chunkSize > MIN_CHUNK_SIZE:
-        #chunkSize = chunkSize - 1
     
-    # Adjust chunk size to round up if there's a remainder
-    if number_of_reads % optimal_chunks != 0:
-        chunkSize += 1
-    
-    log.info("blastn chunk size %s" % chunkSize)
-    log.info("number of chunks to create %s" % (number_of_reads / chunkSize))
-    log.info("blastn parallel instances %s" % threads)
+    log.info(f"blastn chunk size {chunkSize}")
+    log.info(f"number of chunks to create {len(chunk_sizes)}")
+    log.info(f"blastn parallel instances {threads}")
     log.info(f"outfmt value: {outfmt}")
     
     # chunk the input file. This is a sequential operation
     input_fastas = []
     with open(fasta, "rt") as fastaFile:
         record_iter = SeqIO.parse(fastaFile, "fasta")
-        for batch in util.misc.batch_iterator(record_iter, chunkSize):
+        for batch in util.misc.batch_iterator(record_iter, chunk_sizes):
             chunk_fasta = mkstempfname('.fasta')
             with open(chunk_fasta, "wt") as handle:
                count= SeqIO.write(batch, handle, "fasta")
@@ -538,14 +530,13 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     # Log the number of workers that will be used
     log.info(f"Initializing executor with {threads} max_workers.")
     hits_files = list(mkstempfname('.hits.txt') for f in input_fastas)
-    with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor: 
+    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers_cpu) as executor: 
         # If we have so few chunks that there are cpus left over,
         # divide extra cpus evenly among chunks where possible
         # rounding to 1 if there are more chunks than extra threads.
         # Then double up this number to better maximize CPU usage.
         #cpus_leftover = threads - optimal_chunks
-        blast_threads = max(1, int(threads / optimal_chunks))
-        log.info(f"Total CPU threads: {threads} = Blast threads per chunk: {blast_threads} x num. of chunks: {num_chunks}")
+        log.info(f"Total CPU threads: {threads} = Blast threads per chunk: {blast_threads} x max workers: {max_workers_cpu}")
         
         #Subumit each fasta chunk to the executor 
         futures = []
