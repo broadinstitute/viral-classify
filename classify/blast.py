@@ -89,6 +89,7 @@ class BlastnTool(BlastTools):
         if output_type not in ['read_id', 'full_line']:
             _log.warning(f"Invalid output_type '{output_type}' specified. Defaulting to 'read_id'.")
             output_type = 'read_id'
+        _log.info(f"Prior to running cmd, executing get_hits_pipe function. Called with task: {task} ,type: {type(task)}")
         # run blastn and emit list of read IDs
         threads = util.misc.sanitize_thread_count(threads)
         cmd = [self.install_and_get_path(),
@@ -106,34 +107,51 @@ class BlastnTool(BlastTools):
             _log.info(f"Using taxidlist: {taxidlist} in BLAST command")
 
         cmd = [str(x) for x in cmd]
-        _log.debug('| ' + ' '.join(cmd) + ' |')
-        blast_pipe = subprocess.Popen(cmd, stdin=inPipe, stdout=subprocess.PIPE)
-
-        # strip tab output to just query read ID names and emit
-        last_read_id = None
-        for line in blast_pipe.stdout:
-            line = line.decode('UTF-8').rstrip('\n\r')
-            read_id = line.split('\t')[0]
-            # only emit if it is not a duplicate of the previous read ID
-            if read_id != last_read_id:
-                last_read_id = read_id
-                yield read_id
-
-        if blast_pipe.poll():
-            raise subprocess.CalledProcessError(blast_pipe.returncode, cmd)
-        elapsed_time = time.time() - start_time
-        _log.info(f"get_hits_pipe exectued in {elapsed_time:.2f} seconds")
+        #Log BLAST command executed
+        _log.info(f"After executing get_hits_pipe function. Called with outfmt: {outfmt}")
+        _log.info(f"After executing get_hits_pipe function. Called with task: {task} ,type: {type(task)}, taxidlist: {taxidlist}, type: {type(taxidlist)}")
+        _log.info('Running blastn command: {}'.format(' '.join(cmd)))
         
+        #try/finally block added to ensure resource packages are cleaned up regardless of error raised
+        try:
+            with subprocess.Popen(cmd, stdin=inPipe, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as blast_pipe:
+                output, error = blast_pipe.communicate()
+                
+                if blast_pipe.returncode != 0:
+                    _log.error(f'Error running blastn command: {error.decode()}')
+                    raise subprocess.CalledProcessError(blast_pipe.returncode, cmd, output=output, stderr=error)
+
+                # Process the output line by line in a generator fashion
+                last_read_id = None
+                for line in output.decode('UTF-8').splitlines():
+                    if output_type == 'read_id':
+                        read_id = line.split('\t')[0]
+                        if read_id != last_read_id:
+                            last_read_id = read_id
+                            yield read_id
+                    elif output_type == 'full_line':
+                        yield line
+        
+        finally:
+            # Ensure resources are cleaned up
+            _log.info("Cleaning up subprocess resources.")
+        
+        # Log successful completion and time taken
+        elapsed_time = time.time() - start_time
+        _log.info("Blastn process completed successfully.")
+        _log.info(f"get_hits_pipe executed in {elapsed_time:.2f} seconds")
+
     def get_hits_bam(self, inBam, db, threads=None):
         return self.get_hits_pipe(
             tools.samtools.SamtoolsTool().bam2fa_pipe(inBam),
             db,
             threads=threads)
 
-    def get_hits_fasta(self, inFasta, db, threads=None):
+    def get_hits_fasta(self, inFasta, db, threads, outfmt, task, max_target_seqs=1, output_type='read_id', taxidlist=None):
         start_time = time.time()
+        _log.info(f"Executing get_hits_fasta function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
         with open(inFasta, 'rt') as inf:
-            for hit in self.get_hits_pipe(inf, db, threads=threads):
+            for hit in self.get_hits_pipe(inf, db=db, threads=threads, outfmt=outfmt, task=task, max_target_seqs=max_target_seqs, output_type=output_type, taxidlist=taxidlist):
                 yield hit
         elapsed_time = time.time() - start_time
         _log.info(f"get_hits_fasta exectued in {elapsed_time:.2f} seconds")
