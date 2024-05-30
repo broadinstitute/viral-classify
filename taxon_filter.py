@@ -454,7 +454,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     and running a new blastn process on each chunk. Return a list of output
     filenames containing hits
     """
-    log.info(f"Executing blastn_chunked_fasta function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
+    log.debug(f"Executing blastn_chunked_fasta function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
     start_time = time.time()
     # the lower bound of how small a fasta chunk can be.
     # too small and the overhead of spawning a new blast process
@@ -480,9 +480,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
         return
     
     #----CHUNKING----#
-    # divide (max, single-thread) chunksize by thread count
-    # to find the  absolute max chunk size per thread
-    #chunk_max_size_per_thread = int(chunkSize) // threads
+    # Setting each blast thread count to 4
 
     blast_threads = 4
     max_workers_cpu = max(1, (threads // blast_threads))
@@ -496,6 +494,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
     # Adjust chunk sizes to distribute remainder reads
     chunk_sizes = [base_reads_per_chunk + (1 if i < remainder_reads else 0) for i in range(max_workers_cpu)]
     log.info(f"Print chunk sizes {chunk_sizes}")
+    
     # Ensure that the user-defined chunk size is respected
     chunkSize = min(chunkSize, max(chunk_sizes))
 
@@ -564,7 +563,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 
     #Measure clean up runtime
     elapsed_clean_up = time.time() - clean_up_start_time
-    log.info(f"clean up (line 540 - 546) finished in {elapsed_clean_up:.2f} seconds")
+    log.debug(f"clean up finished in {elapsed_clean_up:.2f} seconds")
 
     #----OVERALL RUNTIME------#
 
@@ -574,7 +573,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 
 def chunk_blast_hits(inFasta, db, blast_hits_output, threads, outfmt="6", chunkSize=1000000, task=None, max_target_seqs=1, output_type= 'read_id', taxidlist=None):
     '''Process BLAST hits from a FASTA file by dividing the file into smaller chunks for parallel processing (blastn_chunked_fasta).'''
-    log.info(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
+    log.debug(f"Executing chunk_blast_hits function. Called with outfmt: {outfmt}, taxidlist: {taxidlist}")
     if chunkSize > 0:
         log.info("Running BLASTN on %s against database %s with chunkSize: %s", inFasta, db, chunkSize)
         blastn_chunked_fasta(fasta=inFasta, db=db, out_hits=blast_hits_output, threads=threads, outfmt=outfmt, chunkSize=chunkSize, task=task, max_target_seqs=max_target_seqs, output_type=output_type, taxidlist=taxidlist)
