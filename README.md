@@ -1,10 +1,7 @@
 [![Docker Repository on Quay](https://quay.io/repository/broadinstitute/viral-classify/status "Docker Repository on Quay")](https://quay.io/repository/broadinstitute/viral-classify)
 [![Build Status](https://github.com/broadinstitute/viral-classify/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/broadinstitute/viral-classify/actions)
 [![Documentation Status](https://readthedocs.org/projects/viral-classify/badge/?version=latest)](https://viral-classify.readthedocs.io/en/latest/?badge=latest)
-<!--
-[![Coverage Status](https://coveralls.io/repos/broadinstitute/viral-ngs/badge.png)](https://coveralls.io/r/broadinstitute/viral-ngs)
-[![Code Health](https://landscape.io/github/broadinstitute/viral-ngs/master/landscape.svg?style=flat)](https://landscape.io/github/broadinstitute/viral-ngs)
--->
+[![Coverage Status](https://coveralls.io/repos/github/broadinstitute/viral-classify/badge.svg)](https://coveralls.io/github/broadinstitute/viral-classify)
 
 viral-classify
 =========
