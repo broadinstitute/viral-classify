@@ -1,13 +1,12 @@
 # .coveragerc to control test coverage report
-# source is not used here because it is specified in pytest.ini
 [run]
 branch = True
 omit = tools/conda-tools/*
 disable_warnings =
     module-not-imported
+relative_files = True
 
 [report]
-
 exclude_lines =
     pragma: no cover
 
