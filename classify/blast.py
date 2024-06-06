@@ -4,7 +4,6 @@ import logging
 import os
 import shutil
 import subprocess
-import cProfile
 
 import tools
 import tools.samtools
@@ -12,8 +11,7 @@ import util.misc
 import time
 TOOL_NAME = "blastn"
 
-#Setting up try block to prevent unhandled exception error
-#Build the path to the logs directory in the home directory
+#Setting up logging, blast_py.log
 try:
     log_directory = os.getcwd()
 
@@ -71,7 +69,7 @@ class BlastnTool(BlastTools):
         if output_type not in ['read_id', 'full_line']:
             _log.warning(f"Invalid output_type '{output_type}' specified. Defaulting to 'read_id'.")
             output_type = 'read_id'
-        _log.info(f"Prior to running cmd, executing get_hits_pipe function. Called with task: {task} ,type: {type(task)},outfmt: {outfmt}")
+        _log.debug(f"Prior to running cmd, executing get_hits_pipe function. Called with task: {task} ,type: {type(task)},outfmt: {outfmt}")
         # run blastn and emit list of read IDs
         threads = util.misc.sanitize_thread_count(threads)
         cmd = [self.install_and_get_path(),
@@ -92,7 +90,7 @@ class BlastnTool(BlastTools):
         #Log BLAST command executed
         _log.info('Running blastn command: {}'.format(' '.join(cmd)))
         
-        #try/finally block added to ensure resource packages are cleaned up regardless of error raised
+        #Try/finally block added to ensure resource packages are cleaned up regardless of error raised
         try:
             with subprocess.Popen(cmd, stdin=inPipe, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as blast_pipe:
                 output, error = blast_pipe.communicate()

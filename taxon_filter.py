@@ -18,7 +18,6 @@ import tempfile
 import shutil
 import concurrent.futures
 import contextlib
-import cProfile
 import time
 from Bio import SeqIO
 import pysam
@@ -37,38 +36,6 @@ import classify.blast
 import classify.last
 import classify.bmtagger
 import read_utils
-
-
-'''
-import sys
-sys.path.append('/opt/viral-ngs/viral-classify')
-from logging_config import setup_logging
-setup_logging()
-
-'''
-#Setting up try block to prevent unhandled exception error
-#Build the path to the logs directory in the home directory
-try:
-    log_directory = os.getcwd()  # Gets the current working directory
-
-    # Ensure the directory exists, if not, create it
-    if not os.path.exists(log_directory):
-        os.makedirs(log_directory)
-
-    #Set up logging directory path
-    log_file_path = os.path.join(log_directory, 'taxon_filter.log')
-
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file_path),  
-            logging.StreamHandler() 
-        ]
-    )
-except Exception as e: 
-    print ("Failed to set up logging:", str(e))
-    raise
 
 log = logging.getLogger(__name__)
 
@@ -438,7 +405,7 @@ def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task
         with util.file.open_or_gzopen(out_hits, 'wt') as outf:
             for line in classify.blast.BlastnTool().get_hits_fasta(inFasta=input_fasta, db=db, threads=blast_threads, outfmt=outfmt, task=task, max_target_seqs=max_target_seqs, output_type=output_type, taxidlist=taxidlist):
                 outf.write(line + '\n')
-        log.info("_run_blastn_chunk completed succesfully for one chunk.")
+        log.debug("_run_blastn_chunk completed succesfully for one chunk.")
     except Exception as e:
         log.error("An error occurred in _run_blastn_chunk.: %s", str(e))
         raise e
@@ -498,9 +465,7 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, outfmt="6", chunkSize=100
 
     # Ensure the chunk size is not smaller than the minimum chunk size
     chunkSize = max(chunkSize, MIN_CHUNK_SIZE)
-    
-    log.info(f"blastn chunk size {chunkSize}")
-    log.info(f"number of chunks to create {len(chunk_sizes)}")
+
     log.info(f"blastn parallel instances {threads}")
     log.info(f"outfmt value: {outfmt}")
     
