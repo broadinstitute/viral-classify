@@ -39,13 +39,7 @@ import classify.bmtagger
 import read_utils
 
 
-'''
-import sys
-sys.path.append('/opt/viral-ngs/viral-classify')
-from logging_config import setup_logging
-setup_logging()
 
-'''
 #Setting up try block to prevent unhandled exception error
 #Build the path to the logs directory in the home directory
 try:
@@ -427,6 +421,28 @@ def multi_db_deplete_bam(inBam, refDbs, deplete_method, outBam, **kwargs):
 # ========================
 # ***  chunk_blastn  ***
 # ========================
+
+def calculate_chunking(number_of_reads, total_threads, max_memory, db_memory_estimate, read_memory_per_read):
+    """
+    Calculate optimal chunk sizes and thread allocation, ensuring not to exceed peak memory usage.
+    """
+    # Estimate memory left after accounting for the database
+    available_memory = max_memory - db_memory_estimate
+    
+    # Calculate the number of reads that can fit within the available memory
+    max_reads_per_chunk = int(available_memory / read_memory_per_read)
+    
+    # Calculate the necessary number of chunks to stay within memory limit
+    chunks_needed = max(1, math.ceil(number_of_reads / max_reads_per_chunk))
+    
+    # Distribute available threads across the necessary chunks
+    threads_per_chunk = max(1, total_threads // chunks_needed)
+    
+    # Calculate exact number of reads per chunk
+    reads_per_chunk = number_of_reads // chunks_needed
+    chunk_sizes = [reads_per_chunk + (1 if i < number_of_reads % chunks_needed else 0) for i in range(chunks_needed)]
+    
+    return chunk_sizes, threads_per_chunk
 
 
 def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task=None, max_target_seqs=1, output_type='read_id', taxidlist=None):
