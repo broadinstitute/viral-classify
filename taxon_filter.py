@@ -534,19 +534,29 @@ def blastn_chunked_fasta(fasta, db, out_hits, threads, max_memory, db_memory_est
         chunk_filenames.append(f"{out_hits}_{i}.hits")  # Store output filenames for each chunk
         log.info(f"Created chunk {chunk_fasta} with {chunk_size} reads.")
     #----EXECUTOR-----#
-    
-    #Executor start time 
-    start_time_executor = time.time()
-    # run blastn on each of the fasta input chunks
-    # Log the number of workers that will be used
-    max_workers = len(input_fastas)
-    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(_run_blastn_chunk, db, fasta, chunk_filenames[i], blast_threads, outfmt, task, max_target_seqs, output_type, taxidlist)
-                for i, fasta in enumerate(input_fastas)]
-        results = [future.result() for future in concurrent.futures.as_completed(futures)]
+    # Executor for parallel processing
+    used_threads = blast_threads * len(input_fastas)
+    excess_threads = threads - used_threads
+    extra_threads_per_chunk = excess_threads // len(input_fastas) if len(input_fastas) > 0 else 0
+    with concurrent.futures.ProcessPoolExecutor(max_workers=len(input_fastas)) as executor:
+        futures = []  # Initialize the list to store futures
+        for i, (fasta, output_filename) in enumerate(zip(input_fastas, chunk_filenames)):
+            actual_threads = blast_threads + (extra_threads_per_chunk if i < excess_threads % len(input_fastas) else 0)
+            future = executor.submit(_run_blastn_chunk, db, fasta, output_filename, actual_threads, outfmt, task, max_target_seqs, output_type, taxidlist)
+            futures.append(future)
+            log.info(f"Submitted chunk {i} to executor with {actual_threads} threads per chunk.")
+
+        # Track the completion of futures
+        for i, future in enumerate(concurrent.futures.as_completed(futures)):
+            try:
+                result = future.result()
+                log.info(f"Chunk {i} processed with result: {result}")
+            except Exception as e:
+                log.error(f"Error processing chunk {i}: {e}")
+
     
     #Measuring executor runtime 
-    executor_elapsed_time = time.time() - start_time_executor
+    executor_elapsed_time = time.time() - start_time
     log.info(f"Executor for all chunks finished in {executor_elapsed_time:.2f} seconds.")
     
     #----CLEAN UP------#
