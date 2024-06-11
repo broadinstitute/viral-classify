@@ -430,38 +430,45 @@ def calculate_chunking(number_of_reads, total_threads, max_memory, db_memory_est
     """
     Calculate optimal chunk sizes and thread allocation, ensuring not to exceed peak memory usage.
     Adapts chunk count to manage memory usage when database size approaches memory capacity
-    and optimizes the number of threads per BLAST process based on empirical performance benefits.
+    and ensures no chunk is significantly smaller than others.
     """
-    # Sanitize thread count to match the number of CPU cores available
     total_threads = util.misc.sanitize_thread_count(total_threads)
     logging.info(f"Sanitized thread count: {total_threads}")
 
-    available_memory = max_memory - db_memory_estimate  # Memory left after accounting for the database
-    max_possible_chunks = math.ceil(number_of_reads / 20000)  # Minimum size of chunks is 20,000 reads
+    available_memory = max_memory - db_memory_estimate
+    max_possible_chunks = math.ceil(number_of_reads / 20000)
 
     if available_memory <= 0:
-        # Handle the case where database size is close to or exceeds total memory
         logging.warning("Warning: Database size is at or near memory capacity. Reducing chunk count to minimal.")
-        chunks_needed = 1  # Process everything in one chunk if possible
-        threads_per_chunk = total_threads  # All threads are assigned to this single chunk
+        chunks_needed = 1
+        threads_per_chunk = total_threads
     else:
-        # Calculate how many reads can fit into the available memory
         max_reads_per_chunk = int(available_memory / read_memory_per_read)
         if max_reads_per_chunk < 20000:
-            # If the memory per read results in fewer than the minimum chunk size, adjust chunk count
             chunks_needed = 1
             threads_per_chunk = total_threads
         else:
-            # Normal chunk calculation
             chunks_needed = min(max_possible_chunks, math.ceil(number_of_reads / max_reads_per_chunk))
-            # Calculate threads per chunk based on optimal_blast_threads but do not exceed total_threads
             threads_per_chunk = optimal_blast_threads
             actual_max_chunks = total_threads // optimal_blast_threads
-            chunks_needed = min(chunks_needed, actual_max_chunks)  # Adjust chunk count based on thread constraints
-    
+            chunks_needed = min(chunks_needed, actual_max_chunks)
+
     reads_per_chunk = number_of_reads // chunks_needed
-    chunk_sizes = [reads_per_chunk + (1 if i < number_of_reads % chunks_needed else 0) for i in range(chunks_needed)]
-    
+    remainder_reads = number_of_reads % chunks_needed
+
+    # Enhanced distribution to prevent very small chunks
+    chunk_sizes = [reads_per_chunk + 1 if i < remainder_reads else reads_per_chunk for i in range(chunks_needed)]
+    average_chunk_size = sum(chunk_sizes) / len(chunk_sizes)
+
+    # Ensure no chunk is significantly smaller than average
+    for i in range(len(chunk_sizes)):
+        if chunk_sizes[i] < 0.8 * average_chunk_size:  # Arbitrary threshold, adjust as needed
+            # Attempt to balance chunk sizes
+            if i < len(chunk_sizes) - 1:
+                next_chunk_reduction = min(chunk_sizes[i + 1] - reads_per_chunk, reads_per_chunk - chunk_sizes[i])
+                chunk_sizes[i] += next_chunk_reduction
+                chunk_sizes[i + 1] -= next_chunk_reduction
+
     return chunk_sizes, threads_per_chunk
 
 def _run_blastn_chunk(db, input_fasta, out_hits, blast_threads, outfmt="6", task=None, max_target_seqs=1, output_type='read_id', taxidlist=None):
