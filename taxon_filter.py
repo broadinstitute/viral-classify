@@ -445,6 +445,7 @@ def calculate_chunking(number_of_reads, total_threads, max_memory, db_memory_est
     else:
         max_reads_per_chunk = int(available_memory / read_memory_per_read)
         if max_reads_per_chunk < 20000:
+            logging.warning("Available memory permits less than the minimum chunk size. Reducing chunk count.")
             chunks_needed = 1
             threads_per_chunk = total_threads
         else:
@@ -462,8 +463,7 @@ def calculate_chunking(number_of_reads, total_threads, max_memory, db_memory_est
 
     # Ensure no chunk is significantly smaller than average
     for i in range(len(chunk_sizes)):
-        if chunk_sizes[i] < 0.8 * average_chunk_size:  # Arbitrary threshold, adjust as needed
-            # Attempt to balance chunk sizes
+        if chunk_sizes[i] < 0.8 * average_chunk_size:
             if i < len(chunk_sizes) - 1:
                 next_chunk_reduction = min(chunk_sizes[i + 1] - reads_per_chunk, reads_per_chunk - chunk_sizes[i])
                 chunk_sizes[i] += next_chunk_reduction
