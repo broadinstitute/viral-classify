@@ -6,7 +6,7 @@ class TestCalculateChunking(unittest.TestCase):
         self.db_memory_estimate = 45  # GB
 
     def test_memory_constrained_environment(self):
-        # Settings where the database size is near the total available memory
+        # settings where the database size is near the total available memory
         number_of_reads = 1000000
         total_threads = 16
         max_memory = 46  # GB, slightly more than the database estimate
@@ -21,7 +21,7 @@ class TestCalculateChunking(unittest.TestCase):
         expected_chunks = 1
         expected_threads = total_threads
 
-        # Assertions to check if the function behaves as expected
+        # Make sure function is behaving appropriately 
         self.assertEqual(len(chunk_sizes), expected_chunks, "Function should minimize number of chunks under tight memory conditions")
         self.assertEqual(threads_per_chunk, expected_threads, "Function should use all available threads for the minimal number of chunks")
 
