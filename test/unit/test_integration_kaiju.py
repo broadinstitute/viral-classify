@@ -10,7 +10,7 @@ import sys
 import shutil
 import tempfile
 
-import lxml.html.clean
+#import lxml.html.clean
 import pytest
 from Bio import SeqIO
 
