@@ -39,28 +39,6 @@ class Kallisto(tools.Tool):
             self.install_and_get_path()
         return os.path.dirname(self.executable_path())
 
-    def build(self, out_index, ref_fasta, aa=False, k=31, workflow_type='standard', num_threads=None):
-        '''Create a kallisto index.
-        Args:
-          out_index: output index file
-          ref_fasta: reference fasta file
-          k: kmer size (default 31)
-          aa: ref_fasta file contains amino acid sequences
-          workflow_type: one of 'standard', 'nac', 'kite', 'custom'
-        '''
-        # build db
-        build_opts = {
-            '--threads': util.misc.sanitize_thread_count(num_threads)
-        }
-        if k:
-            build_opts['-k'] = k
-        if out_index:
-            build_opts['-i'] = out_index
-        if aa:
-            build_opts['--aa'] = None
-        if workflow_type:
-            build_opts['--workflow-type'] = workflow_type
-        self.execute('kb ref', None, None, args=[ref_fasta], options=build_opts)
 
     def execute(self, command,output, args=None, options=None):
         '''Run a kb * command.
@@ -88,7 +66,30 @@ class Kallisto(tools.Tool):
         log.debug('Calling %s: %s', command, ' '.join(cmd))
 
         subprocess.check_call(cmd)
-
+        
+    def build(self, out_index, ref_fasta, aa=False, k=31, workflow_type='standard', num_threads=None):
+        '''Create a kallisto index.
+        Args:
+          out_index: output index file
+          ref_fasta: reference fasta file
+          k: kmer size (default 31)
+          aa: ref_fasta file contains amino acid sequences
+          workflow_type: one of 'standard', 'nac', 'kite', 'custom'
+        '''
+        # build db
+        build_opts = {
+            '--threads': util.misc.sanitize_thread_count(num_threads)
+        }
+        if k:
+            build_opts['-k'] = k
+        if out_index:
+            build_opts['-i'] = out_index
+        if aa:
+            build_opts['--aa'] = None
+        if workflow_type:
+            build_opts['--workflow-type'] = workflow_type
+        self.execute('kb ref', None, None, args=[ref_fasta], options=build_opts)
+        
     def classify(self, in_bam, index_file, out_dir, t2g_file, k=31, technology='bulk', h5ad=False, loom=False, num_threads=None):
         """Classify input reads (bam)
 
@@ -148,3 +149,55 @@ class Kallisto(tools.Tool):
         os.unlink(tmp_fastq2)
         os.unlink(tmp_fastq3)
 
+    def extract(self, in_bam, index_file, target_ids, out_dir, t2g_file, aa=False, num_threads=None):
+        """Extracts reads mapping to target ids from input reads (bam)
+        
+        Args:
+          in_bam: unaligned read to extract reads from
+          index_file: kallisto index file
+          out_dir: output directory
+          t2g_file: transcript to gene mapping file
+          aa: ref_fasta file contains amino acid sequences
+          target_ids: list of target ids to extract
+          num_threads: number of threads to use
+        """
+        if tools.samtools.SamtoolsTool().isEmpty(in_bam):
+            return
+
+        opts = {
+            '-i': index_file,
+            '-g': t2g_file,
+            '--kallisto': self.executable_path(),
+            '--target-ids': ','.join(target_ids),
+            '--threads': util.misc.sanitize_thread_count(num_threads)
+        }
+        if aa:
+            opts['--aa'] = True
+            
+            
+        tmp_fastq1 = util.file.mkstempfname('.1.fastq')
+        tmp_fastq2 = util.file.mkstempfname('.2.fastq')
+        tmp_fastq3 = util.file.mkstempfname('.s.fastq')
+        # Do not convert this to samtools bam2fq unless we can figure out how to replicate
+        # the clipping functionality of Picard SamToFastq
+        picard = tools.picard.SamToFastqTool()
+        picard_opts = {
+            'CLIPPING_ATTRIBUTE': tools.picard.SamToFastqTool.illumina_clipping_attribute,
+            'CLIPPING_ACTION': 'X'
+        }
+        picard.execute(in_bam, tmp_fastq1, tmp_fastq2, outFastq0=tmp_fastq3,
+                       picardOptions=tools.picard.PicardTools.dict_to_picard_opts(picard_opts),
+                       JVMmemory=picard.jvmMemDefault)
+
+        # Detect if input bam was paired by checking fastq 2
+        if os.path.getsize(tmp_fastq2) < os.path.getsize(tmp_fastq3):
+            opts['--parity'] = "single"
+            self.execute('kb extract', out_dir, args=[tmp_fastq3], options=opts)
+        else:
+            ## TODO: Interleave the paired-end reads and pass through through 'kb extract'
+            log.warning("kb extract does not support paired-end reads")
+            self.execute('kb extract', out_dir, args=[tmp_fastq1], options=opts)
+            
+        os.unlink(tmp_fastq1)
+        os.unlink(tmp_fastq2)
+        os.unlink(tmp_fastq3)
