@@ -1,16 +1,12 @@
 '''
-Kallisto classification tool
+kb_python classification tool
 '''
-import collections
-import concurrent.futures
 import itertools
 import logging
 import os
 import os.path
 import shutil
 import subprocess
-import sys
-import tempfile
 
 import tools
 import tools.picard
@@ -21,14 +17,14 @@ from builtins import super
 
 log = logging.getLogger(__name__)
 
-class Kallisto(tools.Tool):
+class kb(tools.Tool):
     SUBCOMMANDS = ['count', 'ref', 'extract']
 
     def __init__(self, install_methods=None):
         if not install_methods:
             install_methods = []
             install_methods.append(tools.PrexistingUnixCommand(shutil.which('kb'), require_executability=False))
-        super(Kallisto, self).__init__(install_methods=install_methods)
+        super(kb, self).__init__(install_methods=install_methods)
 
     def version(self):
         return '1'
@@ -68,7 +64,7 @@ class Kallisto(tools.Tool):
         subprocess.check_call(cmd)
         
     def build(self, out_index, ref_fasta, aa=False, k=31, workflow_type='standard', num_threads=None):
-        '''Create a kallisto index.
+        '''Create a kb_python index.
         Args:
           out_index: output index file
           ref_fasta: reference fasta file
@@ -95,7 +91,7 @@ class Kallisto(tools.Tool):
 
         Args:
           in_bam: unaligned reads
-          index_file: kallisto index file
+          index_file: kb_python index file
           out_dir: output directory
           t2g_file: transcript to gene mapping file
           k: kmer size (default 31)
@@ -154,7 +150,7 @@ class Kallisto(tools.Tool):
         
         Args:
           in_bam: unaligned read to extract reads from
-          index_file: kallisto index file
+          index_file: kb_python index file
           out_dir: output directory
           t2g_file: transcript to gene mapping file
           aa: ref_fasta file contains amino acid sequences
