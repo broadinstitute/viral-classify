@@ -1,7 +1,6 @@
 name: Deploy Images to GHCR
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   deploy-image:
