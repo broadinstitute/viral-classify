@@ -1,0 +1,26 @@
+name: Deploy Images to GHCR
+on:
+  workflow_run:
+    workflows: ["unit-tests"]  # Name of your test workflow
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-image:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'  # Only if tests passed
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        run: |
+          docker build . --tag ghcr.io/${{ github.repository }}:latest
+          docker push ghcr.io/${{ github.repository }}:latest
