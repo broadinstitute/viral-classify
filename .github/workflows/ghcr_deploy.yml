@@ -1,15 +1,11 @@
 name: Deploy Images to GHCR
 on:
-  workflow_run:
-    workflows: ["unit-tests"]  # Name of your test workflow
-    types: [completed]
-    branches: [main]
-  workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   deploy-image:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'  # Only if tests passed
     permissions:
       contents: read
       packages: write
