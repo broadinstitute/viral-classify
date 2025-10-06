@@ -1,3 +1,0 @@
-kallisto=0.51.1
-kb-python=0.29.5
-anndata=0.12.2
