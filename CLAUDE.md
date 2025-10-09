@@ -10,6 +10,8 @@ viral-classify is a set of scripts and tools for taxonomic identification, class
 
 ### Testing
 
+**Note:** These commands assume you're inside a properly configured environment (either in a Docker container or with all dependencies installed locally). For running tests in Docker, see "Running Tests in Docker" below.
+
 Run all unit tests:
 ```bash
 pytest -rsxX -n auto test/unit
@@ -35,35 +37,108 @@ Show fixture durations:
 pytest --fixture-durations=10 test/unit
 ```
 
+### Running Tests in Docker
+
+**IMPORTANT:** Tests must be run in a Docker container with all dependencies pre-installed. There are two approaches:
+
+#### Option 1: Use viral-classify Docker image (Recommended for testing)
+
+This image has all conda dependencies pre-installed and is ready to run tests immediately:
+
+```bash
+# Run all tests
+docker run --rm \
+  -v $(pwd):/opt/viral-ngs/viral-classify \
+  -v $(pwd)/test:/opt/viral-ngs/source/test \
+  quay.io/broadinstitute/viral-classify \
+  bash -c "cd /opt/viral-ngs/viral-classify && pytest -rsxX -n auto test/unit"
+
+# Run specific test class
+docker run --rm \
+  -v $(pwd):/opt/viral-ngs/viral-classify \
+  -v $(pwd)/test:/opt/viral-ngs/source/test \
+  quay.io/broadinstitute/viral-classify \
+  bash -c "cd /opt/viral-ngs/viral-classify && pytest -v test/unit/test_taxon_filter.py::TestFilterLastal"
+
+# Run single test method
+docker run --rm \
+  -v $(pwd):/opt/viral-ngs/viral-classify \
+  -v $(pwd)/test:/opt/viral-ngs/source/test \
+  quay.io/broadinstitute/viral-classify \
+  bash -c "cd /opt/viral-ngs/viral-classify && pytest -v test/unit/test_taxon_filter.py::TestFilterLastal::test_filter_lastal_bam_polio"
+```
+
+**Note:** Two volume mounts are required:
+- `-v $(pwd):/opt/viral-ngs/viral-classify` - Mounts source code
+- `-v $(pwd)/test:/opt/viral-ngs/source/test` - Mounts test inputs (shared with viral-core)
+
+#### Option 2: Use viral-core base image (For development with dependency changes)
+
+If you're modifying conda dependencies, start from viral-core and install dependencies:
+
+```bash
+# Interactive shell for development
+docker run -it --rm \
+  -v $(pwd):/opt/viral-ngs/viral-classify \
+  -v $(pwd)/test:/opt/viral-ngs/source/test \
+  quay.io/broadinstitute/viral-core
+
+# Inside container, install dependencies:
+/opt/viral-ngs/viral-classify/docker/install-dev-layer.sh
+
+# Then run tests:
+cd /opt/viral-ngs/viral-classify
+pytest -rsxX -n auto test/unit
+```
+
 ### Docker Development Workflow
 
-The development paradigm is intentionally docker-centric. To work on code changes:
+The development paradigm is intentionally docker-centric.
+
+**For quick testing without dependency changes:** Use the pre-built viral-classify image (see "Running Tests in Docker" above).
+
+**For development with dependency changes:**
 
 1. Mount local checkout into viral-core container:
 ```bash
-docker run -it --rm -v $(pwd):/opt/viral-ngs/viral-classify quay.io/broadinstitute/viral-core
+docker run -it --rm \
+  -v $(pwd):/opt/viral-ngs/viral-classify \
+  -v $(pwd)/test:/opt/viral-ngs/source/test \
+  quay.io/broadinstitute/viral-core
 ```
 
-2. If changing conda dependencies, update them inside container:
-```bash
-/opt/viral-ngs/source/docker/install-conda-dependencies.sh /opt/viral-ngs/viral-classify/requirements-conda.txt
-```
-
-3. Or install full dev layer from viral-core:
+2. Inside container, install this module's dependencies:
 ```bash
 /opt/viral-ngs/viral-classify/docker/install-dev-layer.sh
 ```
 
-4. Test interactively within container:
+3. Test interactively within container:
 ```bash
 cd /opt/viral-ngs/viral-classify
 pytest -rsxX -n auto test/unit
 ```
 
-5. Optionally snapshot your container with dependencies installed:
+4. Optionally snapshot your container with dependencies installed:
 ```bash
+# From host machine, in another terminal
 docker commit <container_id> local/viral-classify-dev
 ```
+
+**Important:** Always use both volume mounts (`-v` flags) as shown above. The test input files are shared between viral-core and viral-classify, so both paths must be mounted.
+
+### Common Docker Testing Issues
+
+**Tests fail with "can't open file" or "file not found" errors:**
+- Ensure you're using BOTH volume mounts: `-v $(pwd):/opt/viral-ngs/viral-classify` AND `-v $(pwd)/test:/opt/viral-ngs/source/test`
+- Test input files live in a shared location between viral-core and viral-classify
+
+**Tests fail with "command not found" for tools like lastdb, kraken, etc.:**
+- Use the `quay.io/broadinstitute/viral-classify` image, not `viral-core`
+- Or run `install-dev-layer.sh` inside the viral-core container before testing
+
+**Platform warnings (linux/amd64 vs linux/arm64):**
+- These warnings are expected on ARM Macs and can be ignored
+- Docker will use emulation automatically
 
 ### Docker Build
 
