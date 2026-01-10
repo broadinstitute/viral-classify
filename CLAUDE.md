@@ -165,6 +165,8 @@ Key subcommands available via `metagenomics.py <command>`:
 - `kraken` - Classify reads using Kraken taxonomic classifier
 - `kraken2` - Classify reads using Kraken2
 - `kaiju` - Classify reads using Kaiju protein-based classifier
+- `kma` - Classify reads using KMA k-mer alignment
+- `kma_build` - Build KMA database from reference FASTA
 - `krona` - Create Krona HTML visualization from classification results
 - `blast_contigs` - BLAST contigs for taxonomic assignment
 - `diamond` - Diamond protein alignment for classification
@@ -187,6 +189,7 @@ Key subcommands available via `taxon_filter.py <command>`:
   - `kraken.py` - Kraken/KrakenUniq classifier wrapper
   - `kraken2.py` - Kraken2 classifier wrapper
   - `kaiju.py` - Kaiju protein classifier wrapper
+  - `kma.py` - KMA k-mer aligner wrapper
   - `krona.py` - Krona visualization wrapper
   - `blast.py` - BLAST+ blastn and makeblastdb wrappers
   - `diamond.py` - Diamond protein aligner wrapper
@@ -222,7 +225,7 @@ viral-classify imports core utilities from viral-core (not in this repository):
 
 The project uses **4 separate conda environments** to handle dependency conflicts:
 
-- **Main environment** (`requirements-conda.txt`): blast, bmtagger, kmc, last, perl
+- **Main environment** (`requirements-conda.txt`): blast, bmtagger, kma, kmc, last, perl, kallisto, kb-python
 - **env2** (`requirements-conda-env2.txt`): Tools with incompatible dependencies
 - **env3** (`requirements-conda-env3.txt`): Additional isolated tools
 - **env4** (`requirements-conda-env4.txt`): Additional isolated tools
