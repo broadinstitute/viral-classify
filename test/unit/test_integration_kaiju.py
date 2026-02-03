@@ -1,4 +1,8 @@
 # Integration tests for kaiju
+# DISABLED: kaiju requires broad-viral conda channel which causes CI timeouts
+import pytest
+pytestmark = pytest.mark.skip(reason="kaiju disabled - requires broad-viral conda channel")
+
 from builtins import super
 import argparse
 import binascii
@@ -11,12 +15,11 @@ import shutil
 import tempfile
 
 #import lxml.html.clean
-import pytest
 from Bio import SeqIO
 
 import metagenomics
 import tools
-import classify.kaiju
+# import classify.kaiju  # disabled
 import tools.picard
 import util.file
 import test.unit.fixtures
@@ -49,11 +52,11 @@ def sam_to_fastq():
     return tools.picard.SamToFastqTool()
 
 
-@pytest.fixture(scope='module')
-def kaiju():
-    kaiju = classify.kaiju.Kaiju()
-    kaiju.install()
-    return kaiju
+# @pytest.fixture(scope='module')
+# def kaiju():
+#     kaiju = classify.kaiju.Kaiju()
+#     kaiju.install()
+#     return kaiju
 
 
 @pytest.fixture(scope='module', params=['TestMetagenomicsSimple', 'TestMetagenomicsViralMix'])
