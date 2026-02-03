@@ -10,11 +10,10 @@ COPY requirements-conda.txt requirements-conda-env2.txt requirements-conda-env3.
 # install most dependencies to the main environment
 RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda.txt $VIRAL_NGS_PATH/requirements-conda.txt
 
-# install packages with dependency incompatibilities to the second environment
-RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; \
-	#conda config --set channel_priority strict; \
-	conda create -q -y -n env2; \
-	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env2.txt
+# env2 disabled - was only used for kaiju (broad-viral channel)
+# RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; \
+# 	conda create -q -y -n env2; \
+# 	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env2.txt
 
 # install packages with dependency incompatibilities to the third environment
 RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env3"; \
