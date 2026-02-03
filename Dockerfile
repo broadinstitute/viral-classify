@@ -3,7 +3,8 @@ FROM quay.io/broadinstitute/viral-core:2.5.21
 LABEL maintainer "viral-ngs@broadinstitute.org"
 
 ENV VIRAL_CLASSIFY_PATH=$INSTALL_PATH/viral-classify \
-	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin:$MINICONDA_PATH/envs/env3/bin:$MINICONDA_PATH/envs/env4/bin"
+	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin:$MINICONDA_PATH/envs/env3/bin:$MINICONDA_PATH/envs/env4/bin" \
+	CONDA_CHANNEL_STRING="--override-channels -c conda-forge -c bioconda"
 
 COPY requirements-conda.txt requirements-conda-env2.txt requirements-conda-env3.txt requirements-conda-env4.txt $VIRAL_CLASSIFY_PATH/
 # install most dependencies to the main environment
