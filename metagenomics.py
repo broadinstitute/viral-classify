@@ -37,7 +37,7 @@ import util.file
 import util.misc
 import read_utils
 
-import classify.kaiju
+# import classify.kaiju  # disabled: kaiju requires broad-viral conda channel
 import classify.kma
 import classify.kraken
 import classify.kraken2
@@ -936,7 +936,7 @@ def parser_krona(parser=argparse.ArgumentParser()):
     parser.add_argument('--magnitudeColumn', help='Column of magnitude. (default %(default)s)', type=int, default=None)
     parser.add_argument('--noHits', help='Include wedge for no hits.', action='store_true')
     parser.add_argument('--noRank', help='Include no rank assignments.', action='store_true')
-    parser.add_argument('--inputType', help='Handling for specialized report types.', default='tsv', choices=['tsv', 'kraken2', 'krakenuniq', 'kaiju'])
+    parser.add_argument('--inputType', help='Handling for specialized report types.', default='tsv', choices=['tsv', 'kraken2', 'krakenuniq'])  # 'kaiju' disabled
     util.cmd.common_args(parser, (('loglevel', None), ('version', None)))
     util.cmd.attach_main(parser, krona, split_args=True)
     return parser
@@ -986,18 +986,19 @@ def krona(inReports, db, outHtml, queryColumn=None, taxidColumn=None, scoreColum
                         f_out.write('{}\t{}\t{}\n'.format(taxid, tax_reads, tax_kmers))
                 to_import.append(tmp_tsv)
 
-        elif inputType == 'kaiju':
-            queryColumn=None
-            taxidColumn=1
-            scoreColumn=None
-            magnitudeColumn=2
-            for inReport in inReports:
-                tmp_tsv = util.file.mkstempfname('.tsv', directory=tmp_dir)
-                with open(tmp_tsv, 'w') as f_out:
-                    report = classify.kaiju.Kaiju().read_report(inReport)
-                    for taxid, reads in report.items():
-                        f_out.write('{}\t{}\n'.format(taxid, reads))
-                to_import.append(tmp_tsv)
+        # kaiju support disabled - requires broad-viral conda channel
+        # elif inputType == 'kaiju':
+        #     queryColumn=None
+        #     taxidColumn=1
+        #     scoreColumn=None
+        #     magnitudeColumn=2
+        #     for inReport in inReports:
+        #         tmp_tsv = util.file.mkstempfname('.tsv', directory=tmp_dir)
+        #         with open(tmp_tsv, 'w') as f_out:
+        #             report = classify.kaiju.Kaiju().read_report(inReport)
+        #             for taxid, reads in report.items():
+        #                 f_out.write('{}\t{}\n'.format(taxid, reads))
+        #         to_import.append(tmp_tsv)
 
         else:
             raise NotImplementedError
@@ -1029,23 +1030,24 @@ def krona(inReports, db, outHtml, queryColumn=None, taxidColumn=None, scoreColum
 __commands__.append(('krona', parser_krona))
 
 
-def parser_kaiju(parser=argparse.ArgumentParser()):
-    parser.add_argument('inBam', help='Input unaligned reads, BAM format.')
-    parser.add_argument('db', help='Kaiju database .fmi file.')
-    parser.add_argument('taxDb', help='Taxonomy database directory.')
-    parser.add_argument('outReport', help='Output taxonomy report.')
-    parser.add_argument('--outReads', help='Output LCA assignments for each read.')
-    util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
-    util.cmd.attach_main(parser, kaiju, split_args=True)
-    return parser
-def kaiju(inBam, db, taxDb, outReport, outReads=None, threads=None):
-    '''
-        Classify reads by the taxon of the Lowest Common Ancestor (LCA)
-    '''
-
-    kaiju_tool = classify.kaiju.Kaiju()
-    kaiju_tool.classify(db, taxDb, inBam, output_report=outReport, output_reads=outReads, num_threads=threads)
-__commands__.append(('kaiju', parser_kaiju))
+# kaiju command disabled - requires broad-viral conda channel
+# def parser_kaiju(parser=argparse.ArgumentParser()):
+#     parser.add_argument('inBam', help='Input unaligned reads, BAM format.')
+#     parser.add_argument('db', help='Kaiju database .fmi file.')
+#     parser.add_argument('taxDb', help='Taxonomy database directory.')
+#     parser.add_argument('outReport', help='Output taxonomy report.')
+#     parser.add_argument('--outReads', help='Output LCA assignments for each read.')
+#     util.cmd.common_args(parser, (('threads', None), ('loglevel', None), ('version', None), ('tmp_dir', None)))
+#     util.cmd.attach_main(parser, kaiju, split_args=True)
+#     return parser
+# def kaiju(inBam, db, taxDb, outReport, outReads=None, threads=None):
+#     '''
+#         Classify reads by the taxon of the Lowest Common Ancestor (LCA)
+#     '''
+#
+#     kaiju_tool = classify.kaiju.Kaiju()
+#     kaiju_tool.classify(db, taxDb, inBam, output_report=outReport, output_reads=outReads, num_threads=threads)
+# __commands__.append(('kaiju', parser_kaiju))
 
 
 def parser_metagenomic_report_merge(parser=argparse.ArgumentParser()):
