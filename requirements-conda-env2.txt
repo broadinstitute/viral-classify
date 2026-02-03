@@ -1,1 +1,1 @@
-kaiju>=1.6.3_yesimon
+# kaiju>=1.6.3_yesimon  # disabled: only package from broad-viral channel which causes CI timeouts

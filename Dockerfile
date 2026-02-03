@@ -3,28 +3,26 @@ FROM quay.io/broadinstitute/viral-core:2.5.21
 LABEL maintainer "viral-ngs@broadinstitute.org"
 
 ENV VIRAL_CLASSIFY_PATH=$INSTALL_PATH/viral-classify \
-	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin:$MINICONDA_PATH/envs/env3/bin:$MINICONDA_PATH/envs/env4/bin"
+	PATH="$PATH:$MINICONDA_PATH/envs/env2/bin:$MINICONDA_PATH/envs/env3/bin:$MINICONDA_PATH/envs/env4/bin" \
+	CONDA_CHANNEL_STRING="--override-channels -c conda-forge -c bioconda"
 
 COPY requirements-conda.txt requirements-conda-env2.txt requirements-conda-env3.txt requirements-conda-env4.txt $VIRAL_CLASSIFY_PATH/
 # install most dependencies to the main environment
 RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda.txt $VIRAL_NGS_PATH/requirements-conda.txt
 
-# install packages with dependency incompatibilities to the second environment
-RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; \
-	#conda config --set channel_priority strict; \
-	conda create -q -y -n env2; \
-	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env2.txt
+# env2 disabled - was only used for kaiju (broad-viral channel)
+# RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env2"; \
+# 	conda create -q -y -n env2; \
+# 	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env2.txt
 
 # install packages with dependency incompatibilities to the third environment
 RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env3"; \
-	#conda config --set channel_priority strict; \
-	conda create -q -y -n env3; \
+	conda create -q -y -n env3 --override-channels -c conda-forge -c bioconda; \
 	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env3.txt
 
 # install packages with dependency incompatibilities to the 4th environment
 RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env4"; \
-	#conda config --set channel_priority strict; \
-	conda create -q -y -n env4; \
+	conda create -q -y -n env4 --override-channels -c conda-forge -c bioconda; \
 	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env4.txt
 
 # Copy all source code into the base repo

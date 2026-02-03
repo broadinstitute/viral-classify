@@ -1,13 +1,15 @@
 #!/usr/bin/env python
+# DISABLED: kaiju requires broad-viral conda channel which causes CI timeouts
 
 import os
 import sys
 
 import pytest
+pytestmark = pytest.mark.skip(reason="kaiju disabled - requires broad-viral conda channel")
 
 import tools
-from test.pipelines.snakemake import snake
-from test.integration.test_kaiju import * # for pytest fixtures
+# from test.pipelines.snakemake import snake
+# from test.integration.test_kaiju import * # for pytest fixtures
 
 @pytest.mark.skipif(sys.version_info < (3, 5), reason="Python version is too old for snakemake.")
 def test_pipes(tmpdir_function, kaiju_db, taxonomy_db, krona_db, input_bam):

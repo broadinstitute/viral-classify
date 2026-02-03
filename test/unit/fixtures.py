@@ -3,7 +3,7 @@ import os
 from os.path import join
 import shutil
 import tools
-import classify.kaiju
+# import classify.kaiju  # disabled: kaiju requires broad-viral conda channel
 import tools.picard
 import classify.krona
 import util.file
