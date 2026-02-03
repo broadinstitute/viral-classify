@@ -17,14 +17,12 @@ RUN $VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/re
 
 # install packages with dependency incompatibilities to the third environment
 RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env3"; \
-	#conda config --set channel_priority strict; \
-	conda create -q -y -n env3; \
+	conda create -q -y -n env3 --override-channels -c conda-forge -c bioconda; \
 	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env3.txt
 
 # install packages with dependency incompatibilities to the 4th environment
 RUN CONDA_PREFIX="$MINICONDA_PATH/envs/env4"; \
-	#conda config --set channel_priority strict; \
-	conda create -q -y -n env4; \
+	conda create -q -y -n env4 --override-channels -c conda-forge -c bioconda; \
 	$VIRAL_NGS_PATH/docker/install-conda-dependencies.sh $VIRAL_CLASSIFY_PATH/requirements-conda-env4.txt
 
 # Copy all source code into the base repo
